@@ -14,6 +14,7 @@ public:
 
     log_stream(t_lvl lvl);
     ~log_stream();
+    
 
     template <typename T>
     log_stream& operator<<(T const& value)
