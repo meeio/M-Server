@@ -14,7 +14,6 @@ public:
 
     log_stream(t_lvl lvl);
     ~log_stream();
-    
 
     template <typename T>
     log_stream& operator<<(T const& value)
@@ -31,10 +30,10 @@ private:
     t_lvl             lvl_;
 };
 
-
 #define DEBUG_MODE spdlog::set_level(spdlog::level::trace)
 
-#define INFO  log_stream(spdlog::level::info)
+#define ERR log_stream(spdlog::level::err)
+#define INFO log_stream(spdlog::level::info)
 #define TRACE log_stream(spdlog::level::trace)
 #define DEBUG log_stream(spdlog::level::debug)
 

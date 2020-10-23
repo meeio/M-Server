@@ -6,12 +6,17 @@ include_directories(./src/base/include)
 add_subdirectory(./src/base)
 find_library(base_lib REQUIRED)
 
+include_directories(./src/net/include)
+add_subdirectory(./src/net)
+find_library(net_lib REQUIRED)
+
 
 file(GLOB TEST_FILES "test/*.cc" )
 
 foreach(TEST_FILE ${TEST_FILES})
-    get_filename_component(TEST_NAME TEST_FILE NAME_WLE)
+    get_filename_component(TEST_NAME ${TEST_FILES} NAME_WLE)
     message("NAME: ${TEST_NAME} FILE: ${TEST_FILE}")
     add_executable(${TEST_NAME} ${TEST_FILE})
     target_link_libraries(${TEST_NAME} base_lib)
+    target_link_libraries(${TEST_NAME} net_lib)
 endforeach(TEST_FILE ${TEST_FILES})

@@ -4,33 +4,26 @@
 
 #include <unistd.h>
 
+#include "event_loop.hh"
 
-#include <poll.h>
-
-void func()
+void loop_a_event()
 {
-    poll(NULL, 0, 2000);
-}
-
-void func2()
-{
-    poll(NULL, 0, 5000);
+    m::event_loop loop;
+    loop.loop();
 }
 
 int main(int argc, char const *argv[])
 {
     DEBUG_MODE;
-    
-    m::thread a(func);
-    m::thread b(func2);
 
-    a.star();
-    b.star();
+    m::event_loop main_loop;
 
-    a.join();
-    b.join();
+    m::thread loop_thrad(loop_a_event);
+    loop_thrad.star();
 
-    // usleep(100000);
+    main_loop.loop();
+
+    loop_thrad.join();
 
     return 0;
 }
