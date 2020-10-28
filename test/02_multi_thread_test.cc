@@ -1,10 +1,11 @@
 
+#include "event_loop.hh"
 #include "logger.hh"
 #include "thread.hh"
 
 #include <unistd.h>
 
-#include "event_loop.hh"
+m::event_loop* gloop;
 
 void loop_a_event()
 {

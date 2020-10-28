@@ -1,5 +1,6 @@
 #include <iostream>
+#include <chrono>
 
 int main(int, char**) {
-    std::cout << "Hello, world!\n";
+    auto tp = std::chrono::system_clock::now();
 }
