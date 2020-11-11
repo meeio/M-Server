@@ -1,6 +1,8 @@
-#include <unistd.h>
-#include <sys/timerfd.h>
 #include <sys/eventfd.h>
+#include <sys/socket.h>
+#include <sys/timerfd.h>
+#include <unistd.h>
+#include <netinet/in.h>
 
 #include "logger.hh"
 
@@ -23,12 +25,23 @@ inline int create_timer_fd()
     return timer_fd;
 }
 
+inline int create_tcp_socket_fd()
+{
+    int socket_fd = ::socket(AF_INET,
+                             SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC,
+                             IPPROTO_TCP);
+    if (socket_fd < 0)
+        ERR << "socket_fd created falied.";
+
+    return socket_fd;
+}
+
 inline void read_fd(int fd)
 {
     uint64_t howmany;
-    ssize_t n = ::read(fd, &howmany, sizeof howmany);
+    ssize_t  n = ::read(fd, &howmany, sizeof howmany);
 }
 
 itimerspec reset_timerfd_time(int fd, int sec, long nano_sec);
 
-} // namespace m
+} // namespace m::fd

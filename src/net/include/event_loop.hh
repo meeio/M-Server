@@ -79,7 +79,7 @@ inline std::ostream& operator<<(std::ostream& os, const event_loop& loop){
     return os;
 }
 
-} // namespace m
+} // !namespace m
 
 
 #endif // !__EVENT_LOOP__

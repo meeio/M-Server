@@ -29,7 +29,7 @@ void channel::handle_event()
 {
     if (revents_ & (POLLERR | POLLNVAL))
         if (err_callback)
-            read_callback();
+            err_callback();
 
     if (revents_ & (POLLIN | POLLPRI | POLLRDHUP))
         if (read_callback)
@@ -38,6 +38,14 @@ void channel::handle_event()
     if (revents_ & (POLLOUT))
         if (write_callback)
             write_callback();
+}
+
+
+
+void channel::enable_reading() 
+{
+    revents_ |= k_read_evnet;
+    update();
 }
 
 

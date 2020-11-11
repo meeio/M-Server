@@ -35,11 +35,7 @@ public:
     void set_write_callback(t_callback cb) { write_callback = cb; }
     void set_err_callback(t_callback cb) { err_callback = cb; }
 
-    void enable_reading()
-    {
-        events_ |= k_read_evnet;
-        update();
-    }
+    void enable_reading();
 
 private:
     void update();
