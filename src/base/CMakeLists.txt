@@ -1,10 +1,10 @@
 
 file(GLOB ALL_FILES
-    "include/*.hh",
-    "source/*.cc",
+    "include/*.hh"
+    "source/*.cc"
 )
 
-message("BASE_LIB: ${ALL_FILES}")
+# message("BASE_LIB: ${ALL_FILES}")
 
 add_library(base_lib ${ALL_FILES})
 

@@ -1,15 +1,18 @@
 #include <unistd.h>
 #include <sys/timerfd.h>
+#include <sys/eventfd.h>
 
 #include "logger.hh"
 
-namespace m
+namespace m::fd
 {
 
-namespace timerfd
+inline int cread_fd()
 {
+    return ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+}
 
-int create_timer_fd()
+inline int create_timer_fd()
 {
     int timer_fd = ::timerfd_create(CLOCK_MONOTONIC,
                                     TFD_NONBLOCK | TFD_CLOEXEC);
@@ -20,23 +23,12 @@ int create_timer_fd()
     return timer_fd;
 }
 
-itimerspec reset_timerfd_time(int fd, int sec, long nano_sec)
+inline void read_fd(int fd)
 {
-    itimerspec new_time;
-    itimerspec old_time;
-
-    timespec new_time_v = {
-        .tv_sec = sec,
-        .tv_nsec = nano_sec
-    };
-
-    new_time.it_value = new_time_v;
-
-    timerfd_settime(fd, 0, &new_time, &old_time);
-
-    return old_time;
+    uint64_t howmany;
+    ssize_t n = ::read(fd, &howmany, sizeof howmany);
 }
 
-}
-    
+itimerspec reset_timerfd_time(int fd, int sec, long nano_sec);
+
 } // namespace m

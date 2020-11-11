@@ -22,6 +22,8 @@ public:
 
     void star();
     void join();
+    
+    inline bool started() { return start_; }
 
 private:
     typedef std::thread t_thread_handel;

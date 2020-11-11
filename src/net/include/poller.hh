@@ -10,7 +10,7 @@
 #include <tuple>
 #include <memory>
 
-#include "event_loop.hh"
+#include "clock.hh"
 #include "channel.hh"
 
 namespace m
@@ -22,30 +22,26 @@ class channel;
 class poller
 {
 public:
-    typedef std::vector<channel*> t_channel_vector;
-    typedef std::chrono::system_clock::time_point t_time;
+    typedef std::vector<channel*> channel_vector_t;
 
     poller(event_loop*);
     ~poller();
 
-    t_time poll(int timeout_ms, t_channel_vector&);
+    time_point_t poll(int timeout_ms, channel_vector_t&);
 
     void update_channel(channel*);
 
-    void assert_int_loop_thread()
-    {
-        owner_loop_ -> assert_in_loop_thread();
-    }
+    void assert_int_loop_thread();
 
 private:
-    typedef std::vector<pollfd>     t_pollfd_vector_;
-    typedef std::map<int, channel*> t_channel_map_;
+    typedef std::vector<pollfd>     pollfd_vector_t_;
+    typedef std::map<int, channel*> channel_map_t_;
 
-    void find_active_channel(int, t_channel_vector&);
+    void find_active_channel(int, channel_vector_t&);
 
     event_loop*      owner_loop_;
-    t_pollfd_vector_ pollfds_;
-    t_channel_map_   channels_;
+    pollfd_vector_t_ pollfds_;
+    channel_map_t_   channels_;
 };
 
 } // namespace m

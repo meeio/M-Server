@@ -11,32 +11,32 @@
 namespace m
 {
 
-typedef std::function<void()>                 t_timer_callback;
-typedef std::shared_ptr<class timer>          t_timer_ptr;
+typedef std::function<void()>        t_timer_callback;
+typedef std::shared_ptr<class timer> timer_ptr_t;
 
 namespace time
 {
-t_time_point now();
+time_point_t now();
 } // namespace time
 
 class timer
 {
 public:
-    timer(t_timer_callback, t_time_point, double interval);
+    timer(t_timer_callback, time_point_t, time_duration_t);
 
     void run() { callback_(); }
-    void restart(t_time_point);
+    void restart(time_point_t);
 
-    t_time_point expiration() { return expiration_; }
+    time_point_t expiration() { return expiration_; }
     const int    sequence() { return sequence_; }
     bool         reapeat() { return reapeat_; }
 
 private:
-    t_timer_callback  callback_;
-    t_time_duration interval_;
-    t_time_point      expiration_;
-    bool              reapeat_;
-    const int         sequence_;
+    t_timer_callback callback_;
+    time_duration_t  interval_;
+    time_point_t     expiration_;
+    bool             reapeat_;
+    const int        sequence_;
 
     static std::atomic_int s_num_created_;
 };

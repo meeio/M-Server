@@ -5,16 +5,18 @@ namespace m
 
 std::atomic_int timer::s_num_created_(0);
 
-timer::timer(t_timer_callback cb, t_time_point when, double millisecond_interval)
+timer::timer(t_timer_callback cb,
+             time_point_t     when,
+             time_duration_t  interval = time_duration_t(0))
     : callback_(cb)
     , expiration_(when)
-    , interval_(t_time_duration(static_cast<long>(millisecond_interval * 1e6)))
-    , reapeat_(millisecond_interval > 0)
+    , interval_(interval)
+    , reapeat_(interval_.count() > 0)
     , sequence_(++s_num_created_)
 {
 }
 
-void timer::restart(t_time_point now)
+void timer::restart(time_point_t now)
 {
     if (reapeat_)
     {

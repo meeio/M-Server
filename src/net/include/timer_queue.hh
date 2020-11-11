@@ -21,26 +21,24 @@ public:
     timer_queue(event_loop* loop);
     ~timer_queue();
 
-    t_timer_ptr add_timer(t_timer_callback, t_time_point, long intervel);
+    timer_ptr_t add_timer(
+        t_timer_callback, time_point_t, time_duration_t);
 
 private:
-    typedef std::multimap<t_time_point, t_timer_ptr> t_timer_map_;
-    typedef std::vector<t_timer_ptr>                 t_timer_list_;
-
-    void          handel_read();
-    t_timer_list_ pop_expired(t_time_point now);
-    void          reset(const t_timer_list_& expired, t_time_point now);
+    typedef std::multimap<time_point_t, timer_ptr_t> timer_map_t_;
+    typedef std::vector<timer_ptr_t>                 timer_list_t_;
 
     void handle_read();
-    // void
+    void reset(const timer_list_t_& expired, time_point_t now);
 
-    bool insert(t_timer_ptr);
+    bool          insert(timer_ptr_t);
+    timer_list_t_ pop_expired(time_point_t now);
 
     event_loop* loop_;
     int         timerfd_;
     channel     timerfd_channel_;
 
-    t_timer_map_ timers_;
+    timer_map_t_ timers_;
 };
 
 } // namespace m

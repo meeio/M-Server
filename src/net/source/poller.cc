@@ -1,5 +1,6 @@
 #include "poller.hh"
 
+#include "event_loop.hh"
 #include "logger.hh"
 
 namespace m
@@ -14,18 +15,18 @@ poller::~poller()
 {
 }
 
-poller::t_time poller::poll(int timeout_ms, t_channel_vector& vector)
+time_point_t poller::poll(int timeout_ms, channel_vector_t& vector)
 {
     int event_num = ::poll(
         &*pollfds_.begin(), pollfds_.size(), timeout_ms);
-    t_time now = std::chrono::system_clock::now();
+    time_point_t now = clock::now();
     find_active_channel(event_num, vector);
 
     return now;
 }
 
 
-void poller::find_active_channel(int event_num, t_channel_vector& vector)
+void poller::find_active_channel(int event_num, channel_vector_t& vector)
 {
     for (const auto pollfd : pollfds_)
     {
@@ -67,6 +68,11 @@ void poller::update_channel(channel* ch)
         if (ch->is_none_event())
             apollfd.fd = -1;
     }
+}
+
+void poller::assert_int_loop_thread()
+{
+    owner_loop_ -> assert_in_loop_thread();
 }
 
 } // namespace m

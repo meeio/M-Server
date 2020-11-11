@@ -37,6 +37,7 @@ private:
 };
 
 #define DEBUG_MODE  spdlog::set_level(spdlog::level::debug)     
+#define TRACE_MODE  spdlog::set_level(spdlog::level::trace)     
 
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

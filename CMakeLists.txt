@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(server VERSION 0.1.0)
-
+set(CMAKE_CXX_FLAGS  "-std=c++17 ${CMAKE_CXX_FLAGS}")
 
 include_directories(./src/base/include)
 add_subdirectory(./src/base)
