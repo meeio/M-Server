@@ -17,7 +17,7 @@ void print_tid()
 
 void print(const char* msg)
 {
-    DEBUG << msg;
+    INFO << msg;
     if (++cnt == 20)
     {
         g_loop->quit();
@@ -27,7 +27,7 @@ void print(const char* msg)
 int main()
 {
 
-    TRACE_MODE;
+    DEBUG_MODE;
 
     print_tid();
 

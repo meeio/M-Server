@@ -26,8 +26,8 @@ event_loop::event_loop()
             << "in this thread " << thread_id_;
     else
         __loop_of_this_thread = this;
-    
-    wake_up_channel_.set_read_callback([&]{
+
+    wake_up_channel_.set_read_callback([&] {
         fd::read_fd(wake_up_fd_);
     });
     wake_up_channel_.enable_reading();
@@ -63,11 +63,10 @@ void event_loop::loop()
 
     TRACE << *this << " star looping.";
 
-    poller::channel_vector_t active_channels;
     while (!quit_)
     {
-        active_channels.clear();
-        time_point_t time = poller_.poll(poll_time_ms_, active_channels);
+        poller::channel_vector_t& active_channels = poller_.poll(poll_time_ms_);
+
         for (channel* ch : active_channels)
         {
             ch->handle_event();
@@ -75,8 +74,9 @@ void event_loop::loop()
         do_pending_functors();
     }
 
-    TRACE << *this << " stop looping.";
     looping_ = false;
+    
+    TRACE << *this << " stop looping.";
 }
 
 void event_loop::quit()

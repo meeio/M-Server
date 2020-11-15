@@ -6,7 +6,7 @@
 
 void run_in_thread()
 {
-    DEBUG << "pid = " << getpid()
+    DEBUG << "run_in_thread(): pid = " << getpid()
           << ", tid = " << m::current_thread::tid();
 }
 
@@ -23,7 +23,7 @@ int main()
     sleep(1);
 
     ploop->run_after(run_in_thread, 2000);
-    sleep(3);
+    sleep(10000);
 
     ploop->quit();
 

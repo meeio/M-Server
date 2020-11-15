@@ -3,12 +3,12 @@
 #include <poll.h>
 
 #include "event_loop.hh"
+#include "logger.hh"
 
 namespace m
 {
-
-const int channel::k_none_event = 0;
-const int channel::k_read_evnet = POLLIN | POLLPRI;
+const int channel::k_none_event  = 0;
+const int channel::k_read_evnet  = POLLIN | POLLPRI;
 const int channel::k_write_event = POLLOUT;
 
 channel::channel(event_loop* owner_loop, int fd)
@@ -40,13 +40,10 @@ void channel::handle_event()
             write_callback();
 }
 
-
-
-void channel::enable_reading() 
+void channel::enable_reading()
 {
-    revents_ |= k_read_evnet;
+    events_ |= k_read_evnet;
     update();
 }
-
 
 } // namespace m

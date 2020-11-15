@@ -3,12 +3,14 @@
 
 #include <tuple>
 
+#include "copytype.hh"
+
 namespace m
 {
 
 class inet_address;
 
-class socket
+class socket : noncopyable
 {
 public:
     socket();
@@ -17,12 +19,12 @@ public:
 
     void                          bind(const inet_address&);
     void                          listen();
-    std::tuple<inet_address, int> accept();
+    std::tuple<int, inet_address> accept();
 
     inline int fd() { return socket_fd_; }
 
 private:
-    const int socket_fd_;
+const int socket_fd_;
 };
 
 } // namespace m

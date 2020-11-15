@@ -15,18 +15,19 @@ poller::~poller()
 {
 }
 
-time_point_t poller::poll(int timeout_ms, channel_vector_t& vector)
+poller::channel_vector_t&  poller::poll(int timeout_ms)
 {
     int event_num = ::poll(
         &*pollfds_.begin(), pollfds_.size(), timeout_ms);
-    time_point_t now = clock::now();
-    find_active_channel(event_num, vector);
-
-    return now;
+    // time_point_t now = clock::now();
+    return find_active_channel(event_num);
 }
 
-void poller::find_active_channel(int event_num, channel_vector_t& vector)
+poller::channel_vector_t&  poller::find_active_channel(int event_num)
 {
+    static channel_vector_t ret_channels;
+    ret_channels.clear();
+
     for (const auto pollfd : pollfds_)
     {
         if (auto re = pollfd.revents ; re > 0)
@@ -35,16 +36,18 @@ void poller::find_active_channel(int event_num, channel_vector_t& vector)
             channel*   ch    = ch_it->second;
             ch->set_revents(re);
 
-            vector.push_back(ch);
+            ret_channels.push_back(ch);
             if (--event_num == 0)
                 break;
         }
     }
+
+    return ret_channels;
 }
 
 void poller::update_channel(channel* ch)
 {
-    assert_int_loop_thread();
+    assert_in_loop_thread();
 
     if (ch->index() < 0)
     {
@@ -70,7 +73,7 @@ void poller::update_channel(channel* ch)
     }
 }
 
-void poller::assert_int_loop_thread()
+void poller::assert_in_loop_thread()
 {
     owner_loop_->assert_in_loop_thread();
 }

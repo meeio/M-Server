@@ -54,5 +54,5 @@
         "streambuf": "cpp",
         "typeinfo": "cpp"
     },
-    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: LLVM, UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4 , PointerAlignment: Left, AlignConsecutiveAssignments : true, AlignConsecutiveDeclarations: true, BreakInheritanceList: BeforeComma, BreakConstructorInitializers: BeforeComma}"
+    "C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Microsoft , UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4 , PointerAlignment: Left, AlignConsecutiveAssignments : true, AlignConsecutiveDeclarations: true, BreakInheritanceList: BeforeComma, BreakConstructorInitializers: BeforeComma,AllowShortFunctionsOnASingleLine: Inline}"
 }

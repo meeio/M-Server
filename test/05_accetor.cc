@@ -16,10 +16,12 @@ int main(int argc, const char** argv)
 
     TRACE_MODE;
 
+    uint16_t listen_port = 12345;
+
     DEBUG << "main thred: pid = " << getpid()
           << ", tid = " << m::current_thread::tid();
 
-    m::inet_address listen_addr(12345);
+    m::inet_address listen_addr(LOCAL, listen_port);
     m::event_loop   loop;
 
     m::acceptor acceptor(&loop, listen_addr);

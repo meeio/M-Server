@@ -1,32 +1,40 @@
 #include <arpa/inet.h>
-#include <stdio.h>
 #include <iostream>
+#include <spdlog/fmt/fmt.h>
+#include <stdio.h>
+
+typedef int port_t;
+
+class B
+{
+public:
+    B()
+    {
+        std::cout << "default" << std::endl;
+    }
+
+    B(B& other)
+    {
+        std::cout << "copy" << std::endl;
+    }
+};
 
 class A
 {
 public:
-    A() = default;
+    A() = delete;
 
-    A(const A& ref)
+    A(B& b)
+    : b_(b)
     {
-        std::cout << "copy" << std::endl;
+
     }
 
-    A get_ref()
-    {
-        return *this;
-    }
-
+    B b_;
 };
 
 int main()
 {
-    int a = 1;
-    int* pa = &a;
-    auto pb = reinterpret_cast<float*>(pa);
-    a ++;
-    std::cout << &(*pa) << std::endl;
-    std::cout << &(*pb) << std::endl;
-    std::cout << pa << std::endl;
-    std::cout << pb << std::endl;
+    B bbb;
+    A c(bbb);
 }
