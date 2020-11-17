@@ -33,13 +33,13 @@ tcp_connection::tcp_connection(event_loop*         loop,
 void tcp_connection::connection_estabalished()
 {
     loop_->assert_in_loop_thread();
-    assert(state_ = state_e::k_connecting);
+    assert(state_ == state_e::k_connecting);
     set_state(state_e::k_connected);
 
     channel_.enable_reading();
 
-    // connection_cb_(shared_from_this());
-    connection_cb_(shared_from_this());
+    auto it = shared_from_this();
+    connection_cb_(it);
 }
 
 void tcp_connection::handle_read()
@@ -60,5 +60,18 @@ void tcp_connection::handle_read()
         handle_error();
     }
 }
+
+
+void tcp_connection::handle_close() 
+{
+    DEBUG << "close";
+}
+
+
+void tcp_connection::handle_error() 
+{
+    DEBUG << "error";
+}
+
 
 } // namespace m

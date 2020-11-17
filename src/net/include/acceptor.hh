@@ -21,7 +21,9 @@ public:
     acceptor(event_loop*, const inet_address&);
 
     void set_new_conn_callback(new_coon_callback_t);
+
     void listen();
+    bool is_listening() { return is_listing; }
 
 private:
     void                handle_new_conn_();

@@ -22,14 +22,14 @@ namespace tcp_cb
 typedef std::function<void(const tcp_connection_ptr_t&)> connection_callback_t;
 
 typedef std::function<
-    void(const tcp_connection_ptr_t&, const char* data, size_t len)>
+    void(const tcp_connection_ptr_t&, const char* data, ssize_t len)>
     message_callback_t;
 
 } // namespace tcp_cb
 
 class tcp_connection
     : noncopyable
-    , std::enable_shared_from_this<tcp_connection>
+    , public std::enable_shared_from_this<tcp_connection>
 {
 public:
     tcp_connection(event_loop*         loop,
