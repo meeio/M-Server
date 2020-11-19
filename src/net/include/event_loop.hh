@@ -3,10 +3,10 @@
 
 #include <cassert>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <iostream>
 
 #include "channel.hh"
 #include "current_thread.hh"
@@ -40,6 +40,7 @@ public:
     void queue_in_loop(functor);
 
     void update_channel(channel*);
+    void remove_channel(channel*);
 
     void assert_in_loop_thread()
     {
@@ -54,16 +55,17 @@ public:
 
 private:
     friend std::ostream& operator<<(std::ostream&, const event_loop&);
-    void wakeup();
+
     void do_pending_functors();
+    void wakeup();
 
     bool      looping_;
     bool      quit_;
     bool      calling_pending_functor_;
     const int thread_id_;
 
-    poller poller_;
     int    poll_time_ms_;
+    poller poller_;
 
     timer_queue timers_;
 
@@ -74,12 +76,12 @@ private:
     std::vector<functor> pending_functors_;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const event_loop& loop){
+inline std::ostream& operator<<(std::ostream& os, const event_loop& loop)
+{
     os << "[event_loop: " << &loop << ": T" << loop.thread_id_ << "]";
     return os;
 }
 
-} // !namespace m
-
+} // namespace m
 
 #endif // !__EVENT_LOOP__

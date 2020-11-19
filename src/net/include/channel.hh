@@ -19,6 +19,7 @@ public:
     typedef std::function<void()> t_callback;
 
     channel(event_loop* loop, int fd);
+    ~channel();
 
     void handle_event();
 
@@ -31,11 +32,13 @@ public:
     int  events() const { return events_; }
     bool is_none_event() const { return events_ == k_none_event; }
 
-    void set_read_callback(t_callback cb) { read_callback = cb; }
-    void set_write_callback(t_callback cb) { write_callback = cb; }
-    void set_err_callback(t_callback cb) { err_callback = cb; }
+    void set_read_callback(t_callback cb) { read_callback_ = cb; }
+    void set_write_callback(t_callback cb) { write_callback_ = cb; }
+    void set_err_callback(t_callback cb) { err_callback_ = cb; }
+    void set_close_callback(t_callback cb) { close_callback_ = cb; }
 
     void enable_reading();
+    void disable_all();
 
 private:
     void update();
@@ -49,10 +52,12 @@ private:
     int         events_;
     int         revents_;
     int         index_;
+    bool        handling_event_;
 
-    t_callback read_callback;
-    t_callback write_callback;
-    t_callback err_callback;
+    t_callback read_callback_;
+    t_callback write_callback_;
+    t_callback err_callback_;
+    t_callback close_callback_;
 };
 
 } // namespace m

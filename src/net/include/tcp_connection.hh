@@ -25,6 +25,8 @@ typedef std::function<
     void(const tcp_connection_ptr_t&, const char* data, ssize_t len)>
     message_callback_t;
 
+typedef std::function<void(const tcp_connection_ptr_t&)> close_callback_t;
+
 } // namespace tcp_cb
 
 class tcp_connection
@@ -37,9 +39,10 @@ public:
                    socket&             socket,
                    const inet_address& host_addr,
                    const inet_address& peer_addr);
+    
+    ~tcp_connection();
 
-
-    void set_connection_callback(tcp_cb::connection_callback_t cb) 
+    void set_connection_callback(tcp_cb::connection_callback_t cb)
     {
         connection_cb_ = cb;
     }
@@ -49,12 +52,17 @@ public:
         message_cb_ = cb;
     }
 
+    void set_close_callback(tcp_cb::close_callback_t cb)
+    {
+        close_cb_ = cb;
+    }
+
     event_loop*        loop() { return loop_; }
     const std::string  name() const { return name_; }
     const inet_address host_addr() const { return host_addr_; }
     const inet_address peer_addr() const { return peer_addr_; }
     const bool         connected() const { return state_ == state_e::k_connected; }
-    
+
     void connection_estabalished(); // call only once
     void connection_destroyed();    // call only once
 
@@ -63,13 +71,10 @@ private:
     {
         k_connecting,
         k_connected,
-        k_disconnected
+        k_disconnected,
     };
 
-    void set_state(state_e s)
-    {
-        state_ = s;
-    }
+    void set_state(state_e s) { state_ = s; }
 
     void handle_read();
     void handle_write();
@@ -88,6 +93,7 @@ private:
 
     tcp_cb::connection_callback_t connection_cb_;
     tcp_cb::message_callback_t    message_cb_;
+    tcp_cb::close_callback_t      close_cb_;
 };
 
 } // namespace m

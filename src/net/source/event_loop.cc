@@ -65,7 +65,7 @@ void event_loop::loop()
 
     while (!quit_)
     {
-        poller::channel_vector_t& active_channels = poller_.poll(poll_time_ms_);
+        poller::channel_vector_t active_channels = poller_.poll(poll_time_ms_);
 
         for (channel* ch : active_channels)
         {
@@ -90,8 +90,19 @@ void event_loop::quit()
 
 void event_loop::update_channel(channel* ch)
 {
+    assert(ch->owner_loop() == this);
+    assert_in_loop_thread();
     poller_.update_channel(ch);
 }
+
+
+void event_loop::remove_channel(channel* ch) 
+{
+    assert(ch->owner_loop() == this);
+    assert_in_loop_thread();
+    poller_.remove_channel(ch);
+}
+
 
 timer_ptr_t event_loop::run_at(t_timer_callback cb, time_point_t tp)
 {

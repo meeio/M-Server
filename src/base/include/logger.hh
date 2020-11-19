@@ -36,14 +36,14 @@ private:
     t_lvl             lvl_;
 };
 
-#define DEBUG_MODE  spdlog::set_level(spdlog::level::debug)     
-#define TRACE_MODE  spdlog::set_level(spdlog::level::trace)     
-
+#define DEBUG_MODE spdlog::set_level(spdlog::level::debug)
+#define TRACE_MODE spdlog::set_level(spdlog::level::trace)
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define ERR log_stream(spdlog::level::err, __FILENAME__, __LINE__)
 #define INFO log_stream(spdlog::level::info, __FILENAME__, __LINE__)
 #define TRACE log_stream(spdlog::level::trace, __FILENAME__, __LINE__)
 #define DEBUG log_stream(spdlog::level::debug, __FILENAME__, __LINE__)
+#define WARN log_stream(spdlog::level::warn, __FILENAME__, __LINE__)
 
 #endif // !__H_LOGGER__

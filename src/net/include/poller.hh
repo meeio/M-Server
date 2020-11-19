@@ -27,9 +27,10 @@ public:
     poller(event_loop*);
     ~poller();
 
-    channel_vector_t& poll(int timeout_ms);
+    channel_vector_t poll(int timeout_ms);
 
     void update_channel(channel*);
+    void remove_channel(channel*);
 
     void assert_in_loop_thread();
 
@@ -37,7 +38,7 @@ private:
     typedef std::vector<pollfd>     pollfd_vector_t_;
     typedef std::map<int, channel*> channel_map_t_;
 
-    channel_vector_t& find_active_channel(int);
+    channel_vector_t find_active_channel(int);
 
     event_loop*      owner_loop_;
     pollfd_vector_t_ pollfds_;

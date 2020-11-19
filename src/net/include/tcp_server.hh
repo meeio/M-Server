@@ -36,11 +36,12 @@ private:
     typedef std::map<std::string, tcp_connection_ptr_t> connection_map_t_;
 
     void register_connection(int, const inet_address&);
+    void remove_connection(const tcp_connection_ptr_t&);
 
     event_loop*       loop_;
     const std::string name_;
     acceptor          acceptor_;
-    connection_map_t_ conn_map_;
+    connection_map_t_ connections_map_;
 
     tcp_cb::connection_callback_t connection_cb_;
     tcp_cb::message_callback_t    message_cb_;

@@ -1,5 +1,7 @@
 #include "poller.hh"
 
+#include <algorithm>
+
 #include "event_loop.hh"
 #include "logger.hh"
 
@@ -15,7 +17,7 @@ poller::~poller()
 {
 }
 
-poller::channel_vector_t&  poller::poll(int timeout_ms)
+poller::channel_vector_t  poller::poll(int timeout_ms)
 {
     int event_num = ::poll(
         &*pollfds_.begin(), pollfds_.size(), timeout_ms);
@@ -23,10 +25,9 @@ poller::channel_vector_t&  poller::poll(int timeout_ms)
     return find_active_channel(event_num);
 }
 
-poller::channel_vector_t&  poller::find_active_channel(int event_num)
+poller::channel_vector_t  poller::find_active_channel(int event_num)
 {
-    static channel_vector_t ret_channels;
-    ret_channels.clear();
+    channel_vector_t ret_channels;
 
     for (const auto pollfd : pollfds_)
     {
@@ -72,6 +73,33 @@ void poller::update_channel(channel* ch)
             apollfd.fd = -1;
     }
 }
+
+
+void poller::remove_channel(channel* ch) 
+{
+
+    assert(channels_.find(ch->fd()) != channels_.end());
+    assert(channels_[ch->fd()] == ch);
+    assert(ch->is_none_event());
+
+    // remove channel from pollfds_
+    if(int t_idx = ch->index(); t_idx == pollfds_.size() - 1)
+    {
+        pollfds_.pop_back();
+    }
+    else
+    {
+        int tail_channel_fd = pollfds_.back().fd;
+        std::iter_swap(pollfds_.begin() + t_idx, pollfds_.end() - 1);
+        channels_[tail_channel_fd]->set_index(t_idx);
+        pollfds_.pop_back();
+    }
+
+    // remove channel from fd to channel* map
+    size_t n = channels_.erase(ch->fd());
+    assert(n == 1);
+}
+
 
 void poller::assert_in_loop_thread()
 {

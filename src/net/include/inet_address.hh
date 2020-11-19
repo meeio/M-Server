@@ -33,8 +33,6 @@ public:
     std::string adress() const { return ip() + ":" + std::to_string(port()); }
 
 private:
-    void set_addr_in(uint16_t port, std::string ip);
-
     sockaddr_in addr_in_;
 };
 

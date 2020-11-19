@@ -21,10 +21,12 @@ public:
     void                          listen();
     std::tuple<int, inet_address> accept();
 
+    int get_error();
+
     inline int fd() { return socket_fd_; }
 
 private:
-const int socket_fd_;
+    const int socket_fd_;
 };
 
 } // namespace m

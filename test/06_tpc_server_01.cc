@@ -28,7 +28,7 @@ int main(int argc, char const* argv[])
     TRACE_MODE;
 
     m::event_loop   loop;
-    m::inet_address listen_addr(LOCAL, 11222);
+    m::inet_address listen_addr(LOCAL, 11223);
     m::tcp_server   server(&loop, listen_addr);
 
     server.set_connection_callback(on_connection);

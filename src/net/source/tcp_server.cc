@@ -22,8 +22,7 @@ tcp_server::tcp_server(event_loop* loop, const inet_address& listen_addr)
         [&](auto&&... args) { return register_connection(args...); });
 }
 
-
-tcp_server::~tcp_server() 
+tcp_server::~tcp_server()
 {
 }
 
@@ -33,16 +32,37 @@ void tcp_server::register_connection(int sockfd, const inet_address& peer_addr)
     socket       host_socket(sockfd);
     inet_address host_addr(host_socket);
 
+    // create a connection
     tcp_connection_ptr_t ptcp_coon = std::make_shared<tcp_connection>(
         loop_, conn_name, host_socket, host_addr, peer_addr);
 
+    // svae current connectino ptr to server object
+    connections_map_[conn_name] = ptcp_coon;
+
+    // set connection callbacks
     ptcp_coon->set_connection_callback(connection_cb_);
     ptcp_coon->set_message_callback(message_cb_);
+    ptcp_coon->set_close_callback(
+        [&](auto&&... args) { remove_connection(args...); });
 
+    // establish connection to peer
     ptcp_coon->connection_estabalished();
+}
 
-    INFO << "new conn [" << conn_name << "]"
-         << "from " << peer_addr.ip() << ":" << peer_addr.port();
+void tcp_server::remove_connection(const tcp_connection_ptr_t& p_conn)
+{
+    loop_->assert_in_loop_thread();
+    TRACE << "tcp_server::remove_connection [" << name_ << "] ";
+
+    size_t n = connections_map_.erase(p_conn->name());
+    assert(n == 1);
+
+    // this lambda captures connection_ptr by value
+    // by doing this, the lifetime of p_ccnn will be extended
+    // at least until connection_destroyed() finished.
+    loop_->queue_in_loop(
+        [p_conn] { p_conn->connection_destroyed(); });
+    
 }
 
 void tcp_server::start()

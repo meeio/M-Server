@@ -30,22 +30,47 @@ tcp_connection::tcp_connection(event_loop*         loop,
     channel_.set_read_callback([&] { handle_read(); });
 }
 
+tcp_connection::~tcp_connection()
+{
+    TRACE << "tcp_connection::~tcp_connection(): deleing " << name_;
+}
+
 void tcp_connection::connection_estabalished()
 {
+
     loop_->assert_in_loop_thread();
+
     assert(state_ == state_e::k_connecting);
     set_state(state_e::k_connected);
 
     channel_.enable_reading();
 
-    auto it = shared_from_this();
-    connection_cb_(it);
+    connection_cb_(shared_from_this());
+}
+
+void tcp_connection::connection_destroyed()
+{
+    loop_->assert_in_loop_thread();
+    TRACE << "tcp_connection::connection_destroyed "
+          << "[" << name_ << "] ";
+
+    set_state(state_e::k_disconnected);
+
+    // remove the channel in poller
+    channel_.disable_all();
+    loop_->remove_channel(&channel_);
+
+    connection_cb_(shared_from_this());
 }
 
 void tcp_connection::handle_read()
 {
     char    buf[65536];
     ssize_t readed_size = ::read(socket_.fd(), buf, sizeof buf);
+
+    TRACE << "cp_connection::handle_read"
+          << "[" << name_ << "] "
+          << "reads " << readed_size << " bytes";
 
     if (readed_size > 0)
     {
@@ -61,17 +86,19 @@ void tcp_connection::handle_read()
     }
 }
 
-
-void tcp_connection::handle_close() 
+void tcp_connection::handle_close()
 {
-    DEBUG << "close";
+    loop_->assert_in_loop_thread();
+    assert(state_ == state_e::k_connected);
+    channel_.disable_all();
+    close_cb_(shared_from_this());
 }
 
-
-void tcp_connection::handle_error() 
+void tcp_connection::handle_error()
 {
-    DEBUG << "error";
+    int err = socket_.get_error();
+    ERR << "tcp_connection::handle_error [" << name_
+        << "] - SO_ERROR = " << err << " " << strerror(err);
 }
-
 
 } // namespace m
