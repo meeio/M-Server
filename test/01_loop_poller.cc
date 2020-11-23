@@ -8,9 +8,10 @@
 m::event_loop* gloop;
 int timerfd;
 
-void timeout()
+void timeout(const m::time_point_t& when)
 {
-    TRACE << "timeout!";
+    sleep(3);
+    DEBUG << "timeout!" << m::clock::time_point_to_str(when);
     // ::read(timerfd);
     gloop->quit();
 }

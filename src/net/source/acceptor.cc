@@ -1,6 +1,7 @@
 #include "acceptor.hh"
 #include "event_loop.hh"
 #include "logger.hh"
+#include "sys_fd.hh"
 
 #define THREAD_SAFE loop_->assert_in_loop_thread();
 
@@ -8,27 +9,25 @@ namespace m
 {
 
 acceptor::acceptor(event_loop* loop, const inet_address& listen_addr)
-    : loop_(loop)
-    , accept_socket_()
-    , accept_channel_(loop, accept_socket_.fd())
+    : channelable(loop, fd::create_tcp_socket_fd())
+    , accept_socket_(fd())
     , is_listing(false)
 {
     accept_socket_.bind(listen_addr);
-    accept_channel_.set_read_callback([&] { handle_new_conn_(); });
 }
 
 void acceptor::listen()
 {
-    loop_->assert_in_loop_thread();
+    assert_in_loop_thread();
 
     is_listing = true;
     accept_socket_.listen();
-    accept_channel_.enable_reading();
+    channel_enable_reading();
 }
 
-void acceptor::handle_new_conn_()
+void acceptor::handle_read(const time_point_t&)
 {
-    loop_->assert_in_loop_thread();
+    assert_in_loop_thread();
 
     TRACE << "handle new conn";
 

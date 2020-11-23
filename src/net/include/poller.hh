@@ -1,17 +1,16 @@
 #ifndef __POLLER_H__
 #define __POLLER_H__
 
-
+#include <chrono>
 #include <map>
 #include <poll.h>
 #include <vector>
-#include <chrono>
 
-#include <tuple>
 #include <memory>
+#include <tuple>
 
-#include "clock.hh"
 #include "channel.hh"
+#include "clock.hh"
 
 namespace m
 {
@@ -32,6 +31,7 @@ public:
     void update_channel(channel*);
     void remove_channel(channel*);
 
+    event_loop* loop() { return owner_loop_; }
     void assert_in_loop_thread();
 
 private:

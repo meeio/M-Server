@@ -4,13 +4,20 @@
 #include <memory>
 #include <string>
 
+#include "buffer.hh"
 #include "channel.hh"
+#include "channelable.hh"
+#include "clock.hh"
 #include "copytype.hh"
 #include "inet_address.hh"
 #include "socket.hh"
 
 namespace m
 {
+
+/* ----------------------------------------------------------- */
+/*                       CALLBACK TYPEDEF                      */
+/* ----------------------------------------------------------- */
 
 class tcp_connection;
 
@@ -19,19 +26,25 @@ typedef std::shared_ptr<tcp_connection> tcp_connection_ptr_t;
 namespace tcp_cb
 {
 
-typedef std::function<void(const tcp_connection_ptr_t&)> connection_callback_t;
+typedef std::function<void(const tcp_connection_ptr_t&)>
+    connection_callback_t;
 
 typedef std::function<
-    void(const tcp_connection_ptr_t&, const char* data, ssize_t len)>
+    void(const tcp_connection_ptr_t&, buffer&, const time_point_t&)>
     message_callback_t;
 
-typedef std::function<void(const tcp_connection_ptr_t&)> close_callback_t;
+typedef std::function<void(const tcp_connection_ptr_t&)>
+    close_callback_t;
 
 } // namespace tcp_cb
 
+/* ----------------------------------------------------------- */
+/*                     TCP_CONNECTION CLASS                    */
+/* ----------------------------------------------------------- */
+
 class tcp_connection
-    : noncopyable
-    , public std::enable_shared_from_this<tcp_connection>
+    : public std::enable_shared_from_this<tcp_connection>
+    , public channelable
 {
 public:
     tcp_connection(event_loop*         loop,
@@ -39,8 +52,10 @@ public:
                    socket&             socket,
                    const inet_address& host_addr,
                    const inet_address& peer_addr);
-    
+
     ~tcp_connection();
+
+    /* ----------------------- CB MODIFIERS ---------------------- */
 
     void set_connection_callback(tcp_cb::connection_callback_t cb)
     {
@@ -57,14 +72,24 @@ public:
         close_cb_ = cb;
     }
 
-    event_loop*        loop() { return loop_; }
+    /* --------------------- STATE INFOMATION -------------------- */
+
     const std::string  name() const { return name_; }
     const inet_address host_addr() const { return host_addr_; }
     const inet_address peer_addr() const { return peer_addr_; }
     const bool         connected() const { return state_ == state_e::k_connected; }
 
+    /* ------------------- STATE CHANGING CB ------------------- */
+
     void connection_estabalished(); // call only once
     void connection_destroyed();    // call only once
+
+protected:
+    /* ---------------------- EVENT HANDLER ---------------------- */
+    virtual void handle_read(const time_point_t& when) override;
+    virtual void handle_write(const time_point_t& when) override;
+    virtual void handle_close(const time_point_t& when) override;
+    virtual void handle_error(const time_point_t& when) override;
 
 private:
     enum class state_e
@@ -76,17 +101,11 @@ private:
 
     void set_state(state_e s) { state_ = s; }
 
-    void handle_read();
-    void handle_write();
-    void handle_close();
-    void handle_error();
-
-    event_loop* loop_;
     std::string name_;
     state_e     state_;
 
-    socket  socket_;
-    channel channel_;
+    buffer buffer_;
+    socket socket_;
 
     inet_address host_addr_;
     inet_address peer_addr_;

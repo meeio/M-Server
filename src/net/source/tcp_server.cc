@@ -5,6 +5,7 @@
 #include "event_loop.hh"
 #include "logger.hh"
 #include "tcp_connection.hh"
+#include "uninet.hh"
 
 using namespace std::placeholders;
 
@@ -30,13 +31,12 @@ void tcp_server::register_connection(int sockfd, const inet_address& peer_addr)
 {
     std::string  conn_name = name_ + fmt::format("#{:0>8}", next_conn_id_++);
     socket       host_socket(sockfd);
-    inet_address host_addr(host_socket);
+    inet_address host_addr(uni_addr::construct_sockaddr_in(sockfd));
 
     // create a connection
     tcp_connection_ptr_t ptcp_coon = std::make_shared<tcp_connection>(
         loop_, conn_name, host_socket, host_addr, peer_addr);
 
-    // svae current connectino ptr to server object
     connections_map_[conn_name] = ptcp_coon;
 
     // set connection callbacks
@@ -45,7 +45,6 @@ void tcp_server::register_connection(int sockfd, const inet_address& peer_addr)
     ptcp_coon->set_close_callback(
         [&](auto&&... args) { remove_connection(args...); });
 
-    // establish connection to peer
     ptcp_coon->connection_estabalished();
 }
 
@@ -62,7 +61,6 @@ void tcp_server::remove_connection(const tcp_connection_ptr_t& p_conn)
     // at least until connection_destroyed() finished.
     loop_->queue_in_loop(
         [p_conn] { p_conn->connection_destroyed(); });
-    
 }
 
 void tcp_server::start()

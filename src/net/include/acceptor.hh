@@ -2,17 +2,18 @@
 #define __ACCEPTOR_H__
 
 #include "channel.hh"
+#include "channelable.hh"
+#include "copytype.hh"
 #include "inet_address.hh"
 #include "socket.hh"
-
-#include "copytype.hh"
 
 namespace m
 {
 
 class event_loop;
 
-class acceptor 
+class acceptor
+    : public channelable
 {
 public:
     typedef std::function<void(int, const inet_address&)>
@@ -25,13 +26,14 @@ public:
     void listen();
     bool is_listening() { return is_listing; }
 
-private:
-    void                handle_new_conn_();
-    new_coon_callback_t new_conn_cb_;
+protected:
+    virtual void handle_read(const time_point_t&) override;
 
-    event_loop* loop_;
-    socket      accept_socket_;
-    channel     accept_channel_;
+private:
+    void handle_new_conn_();
+
+    new_coon_callback_t new_conn_cb_;
+    socket              accept_socket_;
 
     bool is_listing;
 };

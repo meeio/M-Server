@@ -52,8 +52,14 @@
         "sstream": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "source_location": "cpp",
+        "ranges": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "stop_token": "cpp",
+        "cassert": "cpp"
     },
-    "C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Microsoft , UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4 , PointerAlignment: Left, AlignConsecutiveAssignments : true, AlignConsecutiveDeclarations: true, BreakInheritanceList: BeforeComma, BreakConstructorInitializers: BeforeComma,AllowShortFunctionsOnASingleLine: Inline}",
+    "C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Microsoft , UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4 , PointerAlignment: Left, AlignConsecutiveAssignments : true, AlignConsecutiveDeclarations: true, BreakInheritanceList: BeforeComma, BreakConstructorInitializers: BeforeComma,AllowShortFunctionsOnASingleLine: Inline, AlignConsecutiveMacros: true}",
     "references.preferredLocation": "view"
 }

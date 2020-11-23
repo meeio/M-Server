@@ -4,7 +4,7 @@
 namespace m::current_thread
 {
 
-extern __thread int chached_tid__;
+extern thread_local int chached_tid__;
 
 int tid();
     

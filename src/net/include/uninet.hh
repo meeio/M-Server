@@ -11,6 +11,10 @@
 namespace m::uni_addr
 {
 
+/**
+ * functions to cast between sockaddr and sockaddr_in.
+ **/
+
 inline const sockaddr& cast2addr(const sockaddr_in& addr_in)
 {
     auto ptr = reinterpret_cast<const sockaddr*>(&addr_in);
@@ -22,6 +26,23 @@ inline const sockaddr_in& cast2addr_in(const sockaddr& addr)
     auto ptr = reinterpret_cast<const sockaddr_in*>(&addr);
     return *ptr;
 };
+
+inline sockaddr& cast2addr(sockaddr_in& addr_in)
+{
+    auto ptr = reinterpret_cast<sockaddr*>(&addr_in);
+    return *ptr;
+};
+
+inline sockaddr_in& cast2addr_in(sockaddr& addr)
+{
+    auto ptr = reinterpret_cast<sockaddr_in*>(&addr);
+    return *ptr;
+};
+
+/**
+ * functions to convert ip and port to sockaddr_in, 
+ * and vice verse.
+ **/
 
 inline const uint16_t get_port(const sockaddr_in addr_in)
 {

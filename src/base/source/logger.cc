@@ -2,15 +2,16 @@
 
 log_stream::t_ptr_log log_stream::logger_ = spdlog::default_logger();
 
-log_stream::log_stream(t_lvl lvl, std::string file, int line)
+log_stream::log_stream(t_lvl           lvl,
+                       source_location loc)
     : lvl_(lvl)
     , buffer_()
-    , file_(file)
-    , line_(line)
 {
-    // if (lvl == t_lvl::debug or lvl == t_lvl::trace)
+    std::string file_line = fmt::format(
+        "{}:{}", strrchr(loc.file_name(), '/'), loc.line());
+
     buffer_ << fmt::format(
-        "[{:-<25} #{:>3}] ", file_ + " ", line_);
+        "[{:}] [{:}] ", file_line, loc.function_name());
 }
 
 log_stream::~log_stream()

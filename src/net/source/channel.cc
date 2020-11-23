@@ -33,7 +33,7 @@ void channel::update()
     owner_loop_->update_channel(this);
 }
 
-void channel::handle_event()
+void channel::handle_event(const time_point_t& poll_time)
 {
     handling_event_ = true;
 
@@ -56,7 +56,7 @@ void channel::handle_event()
 
     if (revents_ & (POLLIN | POLLPRI | POLLRDHUP))
         if (read_callback_)
-            read_callback_();
+            read_callback_(poll_time);
 
     if (revents_ & (POLLOUT))
         if (write_callback_)

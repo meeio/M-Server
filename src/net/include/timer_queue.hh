@@ -8,6 +8,7 @@
 
 #include "channel.hh"
 #include "timer.hh"
+#include "channelable.hh"
 
 namespace m
 {
@@ -16,6 +17,7 @@ class event_loop;
 // class timer;
 
 class timer_queue
+    : channelable
 {
 public:
     timer_queue(event_loop* loop);
@@ -28,15 +30,16 @@ private:
     typedef std::multimap<time_point_t, timer_ptr_t> timer_map_t_;
     typedef std::vector<timer_ptr_t>                 timer_list_t_;
 
-    void handle_read();
-    void reset(const timer_list_t_& expired, time_point_t now);
+    void handle_read(const time_point_t&);
+    void reset_timers(const timer_list_t_& expired, time_point_t now);
+    void reset_expieration_from_now(time_point_t);
 
     bool          insert(timer_ptr_t);
     timer_list_t_ pop_expired(time_point_t now);
 
-    event_loop* loop_;
-    int         timerfd_;
-    channel     timerfd_channel_;
+    // event_loop* loop_;
+    // int         timerfd_;
+    // channel     timerfd_channel_;
 
     timer_map_t_ timers_;
 };

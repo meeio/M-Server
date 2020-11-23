@@ -9,7 +9,7 @@
 namespace m::fd
 {
 
-inline int cread_fd()
+inline int create_fd()
 {
     return ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
 }

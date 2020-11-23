@@ -20,8 +20,6 @@ class inet_address
 public:
     /// constructs from ip adress information 
     inet_address(std::string ip, uint16_t port);
-    /// consturcts from socket information 
-    inet_address(socket);
     inet_address(sockaddr_in);
     inet_address(sockaddr);
 

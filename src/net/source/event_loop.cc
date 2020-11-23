@@ -6,11 +6,12 @@
 #include "poller.hh"
 #include "sys_fd.hh"
 #include "timer_queue.hh"
+#include "poller_waker.hh"
 
 namespace m
 {
 
-__thread event_loop* __loop_of_this_thread = nullptr;
+thread_local event_loop* __loop_of_this_thread = nullptr;
 
 event_loop::event_loop()
     : thread_id_(current_thread::tid())
@@ -18,39 +19,17 @@ event_loop::event_loop()
     , poll_time_ms_(1000)
     , timers_(this)
     , poller_(this)
-    , wake_up_fd_(fd::cread_fd())
-    , wake_up_channel_(this, wake_up_fd_)
-{
+    , poller_waker_(poller_)
+{    
     if (__loop_of_this_thread != nullptr)
         ERR << "another event_loop object has been cread "
             << "in this thread " << thread_id_;
     else
         __loop_of_this_thread = this;
-
-    wake_up_channel_.set_read_callback([&] {
-        fd::read_fd(wake_up_fd_);
-    });
-    wake_up_channel_.enable_reading();
 }
 
 event_loop::~event_loop()
 {
-}
-
-/**
- * * this is a function to wakeup thread when blocking
- * * in 'poll()' method.
- * * this happents when (1). aleardy blocked in poll() 
- * * or (2). will block in next loop. 
- */
-void event_loop::wakeup()
-{
-    uint64_t one = 1;
-    ssize_t  n   = ::write(wake_up_fd_, &one, sizeof one);
-    if (n != sizeof one)
-    {
-        ERR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
-    }
 }
 
 void event_loop::loop()
@@ -67,15 +46,17 @@ void event_loop::loop()
     {
         poller::channel_vector_t active_channels = poller_.poll(poll_time_ms_);
 
+        time_point_t poll_time = clock::now();
+
         for (channel* ch : active_channels)
         {
-            ch->handle_event();
+            ch->handle_event(poll_time);
         }
         do_pending_functors();
     }
 
     looping_ = false;
-    
+
     TRACE << *this << " stop looping.";
 }
 
@@ -84,7 +65,7 @@ void event_loop::quit()
     quit_ = true;
     if (!is_in_loop_thread())
     {
-        wakeup();
+        poller_waker_.wakeup_loop();
     }
 }
 
@@ -95,14 +76,12 @@ void event_loop::update_channel(channel* ch)
     poller_.update_channel(ch);
 }
 
-
-void event_loop::remove_channel(channel* ch) 
+void event_loop::remove_channel(channel* ch)
 {
     assert(ch->owner_loop() == this);
     assert_in_loop_thread();
     poller_.remove_channel(ch);
 }
-
 
 timer_ptr_t event_loop::run_at(t_timer_callback cb, time_point_t tp)
 {
@@ -145,7 +124,7 @@ void event_loop::queue_in_loop(functor fc)
 
     if (!is_in_loop_thread() || calling_pending_functor_)
     {
-        wakeup();
+        poller_waker_.wakeup_loop();
     }
 }
 

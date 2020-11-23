@@ -7,7 +7,7 @@
 namespace m::current_thread
 {
 
-__thread int chached_tid__ = 0;
+thread_local int chached_tid__ = 0;
 
 int tid()
 {

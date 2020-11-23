@@ -8,9 +8,9 @@
 #include <mutex>
 #include <vector>
 
-#include "channel.hh"
 #include "current_thread.hh"
 #include "poller.hh"
+#include "poller_waker.hh"
 #include "timer.hh"
 #include "timer_queue.hh"
 
@@ -21,6 +21,10 @@ class channel;
 class poller;
 class timer_queue;
 
+/* ----------------------------------------------------------- */
+/*                       CLASS EVENT_LOOP                      */
+/* ----------------------------------------------------------- */
+
 class event_loop
 {
 public:
@@ -29,18 +33,7 @@ public:
     event_loop();
     ~event_loop();
 
-    void loop();
-    void quit();
-
-    timer_ptr_t run_at(t_timer_callback, time_point_t);
-    timer_ptr_t run_after(t_timer_callback, int);
-    timer_ptr_t run_every(t_timer_callback, int);
-
-    void run_in_loop(functor);
-    void queue_in_loop(functor);
-
-    void update_channel(channel*);
-    void remove_channel(channel*);
+    /* ------------------------- OBSERVER ------------------------ */
 
     void assert_in_loop_thread()
     {
@@ -53,27 +46,49 @@ public:
         return thread_id_ == current_thread::tid();
     }
 
+    /* --------------------- LOOPING FUNCTION -------------------- */
+
+    void loop();
+    void quit();
+
+    /* --------------------- FUNCTION RUNNER --------------------- */
+
+    timer_ptr_t run_at(t_timer_callback, time_point_t);
+    timer_ptr_t run_after(t_timer_callback, int);
+    timer_ptr_t run_every(t_timer_callback, int);
+
+    void run_in_loop(functor);
+    void queue_in_loop(functor);
+
+    /* --------------------- CHANNEL MANNAGER -------------------- */
+
+    void update_channel(channel*);
+    void remove_channel(channel*);
+
 private:
+    /* ------------------------- OPERATOR ------------------------ */
+
     friend std::ostream& operator<<(std::ostream&, const event_loop&);
 
+    /* --------------------- FUNCTION RUNNER --------------------- */
+
     void do_pending_functors();
-    void wakeup();
+
+    /* ---------------------------- V ---------------------------- */
 
     bool      looping_;
     bool      quit_;
     bool      calling_pending_functor_;
     const int thread_id_;
 
-    int    poll_time_ms_;
-    poller poller_;
+    int          poll_time_ms_;
+    poller       poller_;
+    poller_waker poller_waker_;
 
     timer_queue timers_;
 
-    int     wake_up_fd_;
-    channel wake_up_channel_;
-
-    std::mutex           pending_functors_mutex_;
     std::vector<functor> pending_functors_;
+    std::mutex           pending_functors_mutex_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const event_loop& loop)

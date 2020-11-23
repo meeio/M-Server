@@ -15,12 +15,6 @@ inet_address::inet_address(std::string ip, uint16_t port)
 {
 }
 
-inet_address::inet_address(socket sock)
-    : inet_address(
-          uni_addr::construct_sockaddr_in(sock.fd()))
-{
-}
-
 inet_address::inet_address(sockaddr_in addr_in)
     : addr_in_(addr_in)
 {
