@@ -8,18 +8,20 @@
 
 #include "event_loop.hh"
 #include "thread.hh"
+#include "copytype.hh"
 
 namespace m
 {
 
 class loop_thread
+    : noncopyable
 {
 public:
     loop_thread();
     ~loop_thread();
     
 
-    event_loop* start_loop();
+    event_loop& start_loop();
 
 private:
     void start_loop_in_thred();

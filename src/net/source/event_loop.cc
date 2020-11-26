@@ -17,8 +17,8 @@ event_loop::event_loop()
     : thread_id_(current_thread::tid())
     , looping_(false)
     , poll_time_ms_(1000)
-    , timers_(this)
-    , poller_(this)
+    , timers_(*this)
+    , poller_(*this)
     , poller_waker_(poller_)
 {    
     if (__loop_of_this_thread != nullptr)
@@ -40,13 +40,13 @@ void event_loop::loop()
     looping_ = true;
     quit_    = false;
 
-    TRACE << *this << " star looping.";
+    TRACE << "event_loop " << to_string() << " star looping.";
 
     while (!quit_)
     {
         poller::channel_vector_t active_channels = poller_.poll(poll_time_ms_);
 
-        time_point_t poll_time = clock::now();
+        time_point poll_time = clock::now();
 
         for (channel* ch : active_channels)
         {
@@ -57,7 +57,7 @@ void event_loop::loop()
 
     looping_ = false;
 
-    TRACE << *this << " stop looping.";
+    TRACE << "event_loop" << to_string() << " stop looping.";
 }
 
 void event_loop::quit()
@@ -71,35 +71,35 @@ void event_loop::quit()
 
 void event_loop::update_channel(channel* ch)
 {
-    assert(ch->owner_loop() == this);
+    assert(&ch->owner_loop() == this);
     assert_in_loop_thread();
     poller_.update_channel(ch);
 }
 
 void event_loop::remove_channel(channel* ch)
 {
-    assert(ch->owner_loop() == this);
+    assert(&ch->owner_loop() == this);
     assert_in_loop_thread();
     poller_.remove_channel(ch);
 }
 
-timer_ptr_t event_loop::run_at(t_timer_callback cb, time_point_t tp)
+timer_ptr event_loop::run_at(timer_callback cb, time_point tp)
 {
-    time_duration_t dur = clock::get_time_duration(0);
+    time_duration dur = clock::get_duration_ms(0);
     return timers_.add_timer(cb, tp, dur);
 }
 
-timer_ptr_t event_loop::run_after(t_timer_callback cb, int delay)
+timer_ptr event_loop::run_after(timer_callback cb, int delay)
 {
-    time_point_t    when       = clock::now();
-    time_duration_t delay_dura = clock::get_time_duration(delay);
+    time_point    when       = clock::now();
+    time_duration delay_dura = clock::get_duration_ms(delay);
     return run_at(cb, when + delay_dura);
 }
 
-timer_ptr_t event_loop::run_every(t_timer_callback cb, int intervel)
+timer_ptr event_loop::run_every(timer_callback cb, int intervel)
 {
-    time_point_t    when       = clock::now();
-    time_duration_t inter_dura = clock::get_time_duration(intervel);
+    time_point    when       = clock::now();
+    time_duration inter_dura = clock::get_duration_ms(intervel);
     return timers_.add_timer(cb, when + inter_dura, inter_dura);
 }
 

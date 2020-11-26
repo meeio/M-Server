@@ -12,64 +12,70 @@ namespace m
 class event_loop;
 
 /**
- * * channel object belongs to one event_loop.
- * * channel object handle one fd by distributing it's callback function.
- **/
+ * channel object belongs to one event_loop.
+ * channel object handle one fd by distributing it's callback function.
+ */
 class channel
 {
 public:
-    typedef std::function<void()>                    callback_t;
-    typedef std::function<void(const time_point_t&)> reade_callback_t;
+    // typedef std::function<void()>                    event_callback;
+    typedef std::time_point<void(const time_point&)> event_callback;
 
-    channel(event_loop* loop, int fd);
+    /* ----------------------- CONSTRUCTORS ---------------------- */
+
+    channel(event_loop& loop, int fd);
     ~channel();
 
     /* ------------------------- OBSERVER ------------------------ */
 
-    event_loop* owner_loop() const { return owner_loop_; }
-    int         fd() const { return fd_; }
-    int         events() const { return events_; }
-    bool        is_none_event() const { return events_ == k_none_event; }
+    event_loop& owner_loop() const { return owner_loop_; }
+
+    int  fd() const { return fd_; }
+    int  events() const { return events_; }
+    bool is_none_event() const { return events_ == EVENT_NONE; }
+    bool is_writing() const { return events_ & EVENT_WRITE; }
+    bool is_reading() const { return events_ & EVENT_READ; }
 
     /* ---------------------- EVENT MODIFERS --------------------- */
 
-    void handle_event(const time_point_t& recive_time);
-    /// modifers for revents
+    void handle_event(const time_point& recive_time);
     void set_revents(int revents) { revents_ = revents; }
-    /// modifers for events
     void enable_reading();
+    void enable_writing();
+    void disable_writing();
     void disable_all();
 
     /* -------------------- CALLBACK MODIFIERS ------------------- */
 
-    void set_read_callback(reade_callback_t cb) { read_callback_ = cb; }
-    void set_write_callback(callback_t cb) { write_callback_ = cb; }
-    void set_err_callback(callback_t cb) { err_callback_ = cb; }
-    void set_close_callback(callback_t cb) { close_callback_ = cb; }
+    void set_read_callback(event_callback cb) { read_callback_ = cb; }
+    void set_write_callback(event_callback cb) { write_callback_ = cb; }
+    void set_err_callback(event_callback cb) { err_callback_ = cb; }
+    void set_close_callback(event_callback cb) { close_callback_ = cb; }
 
     /* ------------------------ FOR POLLER ----------------------- */
+
     int  index() { return index_; }
     void set_index(int idx) { index_ = idx; }
 
-    static const int k_none_event;
-    static const int k_read_evnet;
-    static const int k_write_event;
-    
+    static const int EVENT_NONE;
+    static const int EVENT_READ;
+    static const int EVENT_WRITE;
+
 private:
     void update();
 
-
-    event_loop* owner_loop_;
+    event_loop& owner_loop_;
     const int   fd_;
-    int         events_;
-    int         revents_;
     int         index_;
-    bool        handling_event_;
 
-    reade_callback_t read_callback_;
-    callback_t       write_callback_;
-    callback_t       err_callback_;
-    callback_t       close_callback_;
+    bool handling_event_;
+    int  events_;
+    int  revents_;
+
+    event_callback read_callback_;
+    event_callback write_callback_;
+    event_callback err_callback_;
+    event_callback close_callback_;
 };
 
 } // namespace m

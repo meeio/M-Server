@@ -8,8 +8,8 @@
 namespace m
 {
 
-acceptor::acceptor(event_loop* loop, const inet_address& listen_addr)
-    : channelable(loop, fd::create_tcp_socket_fd())
+acceptor::acceptor(event_loop& loop, const inet_address& listen_addr)
+    : pollable(loop, fd::create_tcp_socket_fd())
     , accept_socket_(fd())
     , is_listing(false)
 {
@@ -25,11 +25,9 @@ void acceptor::listen()
     channel_enable_reading();
 }
 
-void acceptor::handle_read(const time_point_t&)
+void acceptor::handle_read(const time_point&)
 {
     assert_in_loop_thread();
-
-    TRACE << "handle new conn";
 
     auto [host_fd, peer_addr] = accept_socket_.accept();
 

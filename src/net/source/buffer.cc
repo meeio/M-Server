@@ -18,6 +18,8 @@ size_t buffer::read_fd(int fd)
     vec[1].iov_base = extra_buffer;
     vec[1].iov_len  = sizeof extra_buffer;
 
+    // ! here readv is a scatter/gather IO
+    // if have many buffer to read, only need to call 'read' once.
     const ssize_t total_readed = readv(fd, vec, 2);
     if (total_readed > 0)
     {

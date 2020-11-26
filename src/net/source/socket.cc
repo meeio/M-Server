@@ -16,12 +16,12 @@ socket::socket()
 socket::socket(int fd)
     : socket_fd_(fd)
 {
-    TRACE << "socket " << fd << " created.";
 }
     
 socket::~socket() 
 {
-
+    sock_op::close(socket_fd_);
+    TRACE << "socket " << socket_fd_ << " closed.";
 }
 
 void socket::bind(const inet_address& addr)
@@ -39,6 +39,19 @@ std::tuple<int, inet_address> socket::accept()
     auto [connfd, peer_sockaddr] = sock_op::accept(socket_fd_);
     inet_address peer_addr(peer_sockaddr);
     return {connfd, peer_addr};
+}
+
+
+
+ssize_t socket::write(const char* data, const ssize_t len) 
+{
+    return ::write(socket_fd_, data, len);
+}
+
+
+void socket::shutdown_write() 
+{
+    sock_op::shutdown_write(socket_fd_);
 }
 
 int socket::get_error() 

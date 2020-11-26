@@ -9,9 +9,8 @@
 namespace m
 {
 
-timer_queue::timer_queue(event_loop* loop)
-    : channelable(loop, fd::create_timer_fd())
-    , timers_()
+timer_queue::timer_queue(event_loop& loop)
+    : pollable(loop, fd::create_timer_fd())
 {
     channel_enable_reading();
 }
@@ -20,13 +19,13 @@ timer_queue::~timer_queue()
 {
 }
 
-void timer_queue::handle_read(const time_point_t&)
+void timer_queue::handle_read(const time_point&)
 {
     assert_in_loop_thread();
 
-    fd::read_fd(fd());
+    fd::none_reaturn_read(fd());
 
-    time_point_t  now      = clock::now();
+    time_point  now      = clock::now();
     timer_list_t_ expiered = pop_expired(now);
     for (auto timer_ptr : expiered)
     {
@@ -36,14 +35,14 @@ void timer_queue::handle_read(const time_point_t&)
 
     if (!timers_.empty())
     {
-        time_point_t next_expiration = timers_.begin()->first;
+        time_point next_expiration = timers_.begin()->first;
         reset_expieration_from_now(next_expiration);
     }
 }
 
-void timer_queue::reset_timers(const timer_list_t_& timers, time_point_t now)
+void timer_queue::reset_timers(const timer_list_t_& timers, time_point now)
 {
-    for (timer_ptr_t timer : timers)
+    for (timer_ptr timer : timers)
     {
         if (timer->reapeat())
         {
@@ -57,38 +56,40 @@ void timer_queue::reset_timers(const timer_list_t_& timers, time_point_t now)
     }
 }
 
-void timer_queue::reset_expieration_from_now(time_point_t expir)
+void timer_queue::reset_expieration_from_now(time_point expir)
 {
-    m::time_duration_t dura_to_expira = expir - m::clock::now();
+    m::time_duration dura_to_expira = expir - m::clock::now();
 
     auto [sec, nano_sec] = m::clock::parse_time_duration(dura_to_expira);
 
-    nano_sec = nano_sec > 1e6 ? nano_sec : 1e6;
-    m::fd::reset_timerfd_time(fd(), sec, nano_sec);
+    int round_nano_sec = (sec == 0 && nano_sec < 1e6) ? 1e6 : nano_sec;
+    m::fd::reset_timerfd_time(fd(), sec, round_nano_sec);
 }
 
-std::vector<timer_ptr_t> timer_queue::pop_expired(time_point_t now)
+std::vector<timer_ptr> timer_queue::pop_expired(time_point now)
 {
-    std::vector<timer_ptr_t> expired_timers;
-    auto                     end = timers_.lower_bound(now);
+    std::vector<timer_ptr> expired_timers;
+
+    auto end = timers_.lower_bound(now);
     for (auto it = timers_.begin(); it != end; ++it)
     {
         expired_timers.push_back(it->second);
     }
     timers_.erase(timers_.begin(), end);
+
     return expired_timers;
 }
 
-timer_ptr_t timer_queue::add_timer(
-    t_timer_callback cb, time_point_t tp, time_duration_t intervel)
+timer_ptr timer_queue::add_timer(
+    timer_callback cb, time_point tp, time_duration intervel)
 {
-    timer_ptr_t ptimer = std::make_shared<timer>(cb, tp, intervel);
+    timer_ptr ptimer = std::make_shared<timer>(cb, tp, intervel);
 
-    loop()->run_in_loop([&]() {
+    owner_loop().run_in_loop([&]() {
         bool is_the_first = insert(ptimer);
         if (is_the_first)
         {
-            time_point_t expiration = ptimer->expiration();
+            time_point expiration = ptimer->expiration();
             reset_expieration_from_now(expiration);
         }
     });
@@ -96,12 +97,12 @@ timer_ptr_t timer_queue::add_timer(
     return ptimer;
 }
 
-bool timer_queue::insert(timer_ptr_t atimer)
+bool timer_queue::insert(timer_ptr atimer)
 {
     assert_in_loop_thread();
 
     bool         first_timer  = false;
-    time_point_t expired_time = atimer->expiration();
+    time_point expired_time = atimer->expiration();
 
     if (auto it = timers_.begin();
         it == timers_.end() || expired_time < it->first)

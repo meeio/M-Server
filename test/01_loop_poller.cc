@@ -8,7 +8,7 @@
 m::event_loop* gloop;
 int timerfd;
 
-void timeout(const m::time_point_t& when)
+void timeout(const m::time_point& when)
 {
     sleep(3);
     DEBUG << "timeout!" << m::clock::time_point_to_str(when);

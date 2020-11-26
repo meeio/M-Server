@@ -3,7 +3,7 @@
 namespace m::clock
 {
 
-std::tuple<int, long> parse_time_duration(time_duration_t dur)
+std::tuple<int, long> parse_time_duration(time_duration dur)
 {
     long nano_count = dur.count();
     int  sec        = nano_count / 1e9;
@@ -12,13 +12,13 @@ std::tuple<int, long> parse_time_duration(time_duration_t dur)
     return {sec, nano};
 }
 
-time_duration_t get_time_duration(int milliseconds)
+time_duration get_duration_ms(int milliseconds)
 {
     long in_nano = milliseconds * 1e6;
-    return time_duration_t(in_nano);
+    return time_duration(in_nano);
 }
 
-std::string time_point_to_str(time_point_t tp)
+std::string time_point_to_str(time_point tp)
 {
 
     std::time_t t = std::chrono::system_clock::to_time_t(

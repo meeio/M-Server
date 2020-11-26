@@ -19,7 +19,7 @@ loop_thread::~loop_thread()
     thread_.join();
 }
 
-event_loop* loop_thread::start_loop()
+event_loop& loop_thread::start_loop()
 {
     assert(!thread_.started());
     thread_.star();
@@ -29,7 +29,7 @@ event_loop* loop_thread::start_loop()
         cond_.wait(lk, [&] { return ploop_ != nullptr; });
     }
 
-    return ploop_;
+    return *ploop_;
 }
 
 void loop_thread::start_loop_in_thred()

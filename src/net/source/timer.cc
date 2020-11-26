@@ -5,9 +5,9 @@ namespace m
 
 std::atomic_int timer::s_num_created_(0);
 
-timer::timer(t_timer_callback cb,
-             time_point_t     when,
-             time_duration_t  interval = time_duration_t(0))
+timer::timer(timer_callback cb,
+             time_point     when,
+             time_duration  interval = time_duration(0))
     : callback_(cb)
     , expiration_(when)
     , interval_(interval)
@@ -16,7 +16,7 @@ timer::timer(t_timer_callback cb,
 {
 }
 
-void timer::restart(time_point_t now)
+void timer::restart(time_point now)
 {
     if (reapeat_)
     {

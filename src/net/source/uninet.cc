@@ -1,15 +1,17 @@
 #include "uninet.hh"
+#include "netinet/tcp.h"
+#include "unistd.h"
 
 namespace m::uni_addr
 {
-    
+
 sockaddr_in construct_sockaddr_in(const std::string ip, uint16_t port)
 {
     sockaddr_in addr_in;
     memset(&addr_in, 0, sizeof addr_in);
-    
+
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = htons(port);
+    addr_in.sin_port   = htons(port);
     inet_pton(AF_INET, ip.c_str(), &addr_in.sin_addr);
 
     return addr_in;
@@ -17,9 +19,8 @@ sockaddr_in construct_sockaddr_in(const std::string ip, uint16_t port)
 
 sockaddr_in construct_sockaddr_in(int sockfd)
 {
-    sockaddr addr;
+    sockaddr  addr = {0};
     socklen_t addr_len = sizeof addr;
-    memset(&addr, 0, addr_len);
 
     ::getsockname(sockfd, &addr, &addr_len);
 
@@ -28,36 +29,34 @@ sockaddr_in construct_sockaddr_in(int sockfd)
 
 } // namespace m::uni_addr
 
-
 namespace m::sock_op
 {
 
 void bind(int sfd, const sockaddr& addr)
 {
     int ret = ::bind(sfd, &addr, sizeof(addr));
-    if (ret < 0)
+    if ( ret < 0 )
     {
         ERR << "::bind error";
     }
     else
     {
-        TRACE << "socket " << sfd << " bind."; 
+        TRACE << "socket #" << sfd << " bind";
     }
 };
 
 void listen(int sfd)
 {
     int ret = ::listen(sfd, SOMAXCONN);
-    if (ret < 0)
+    if ( ret < 0 )
     {
         ERR << "::listen error";
     }
     else
     {
-        TRACE << "socket " << sfd << " listening.";
+        TRACE << "socket #" << sfd << " listening.";
     }
 };
-
 
 std::tuple<int, sockaddr> accept(int sfd)
 {
@@ -67,11 +66,11 @@ std::tuple<int, sockaddr> accept(int sfd)
     int connfd = ::accept4(sfd, &peer_sockaddr, &addrlen,
                            SOCK_NONBLOCK | SOCK_CLOEXEC);
 
-    if (connfd < 0)
+    if ( connfd < 0 )
     {
         int savedErrno = errno;
         INFO << "Socket::accept";
-        switch (savedErrno)
+        switch ( savedErrno )
         {
         case EAGAIN:
         case ECONNABORTED:
@@ -97,25 +96,52 @@ std::tuple<int, sockaddr> accept(int sfd)
             ERR << "unknown error of ::accept " << savedErrno;
             break;
         }
-
     }
 
     return {connfd, peer_sockaddr};
-}; 
+};
+
+void shutdown_write(int sfd)
+{
+    if ( ::shutdown(sfd, SHUT_WR) < 0 )
+    {
+        ERR << "error " << sfd;
+    }
+}
+
+void close(int sfd)
+{
+    if ( ::close(sfd) < 0 )
+    {
+        ERR << "close" << sfd;
+    }
+}
+
+void set_tcp_no_delay(int sfd, bool on)
+{
+    int optval = on ? 1 : 0;
+    ::setsockopt(sfd, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof optval);
+}
+
+void set_tcp_keep_alive(int sfd, bool on)
+{
+    int optval = on ? 1 : 0;
+    ::setsockopt(sfd, IPPROTO_TCP, SO_KEEPALIVE, &optval, sizeof optval);
+}
 
 int get_error(int sockfd)
 {
-    int optval;
+    int       optval;
     socklen_t optlen = sizeof optval;
 
-    if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) <  0)
+    if ( ::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0 )
     {
         return errno;
     }
     else
     {
         return optval;
-    }      
+    }
 }
 
 } // namespace m::sock_op

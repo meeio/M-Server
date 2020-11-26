@@ -2,6 +2,7 @@
 #define __SOCKET_H__
 
 #include <tuple>
+#include <sys/types.h>
 
 #include "copytype.hh"
 
@@ -20,10 +21,12 @@ public:
     void                          bind(const inet_address&);
     void                          listen();
     std::tuple<int, inet_address> accept();
+    void                          shutdown_write();
+    ssize_t                       write(const char*, const ssize_t);
 
     int get_error();
 
-    inline int fd() { return socket_fd_; }
+    inline const int fd() const { return socket_fd_; }
 
 private:
     const int socket_fd_;

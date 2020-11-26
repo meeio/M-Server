@@ -4,10 +4,13 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "copytype.hh"
+
 namespace m
 {
 
 class latch
+    : noncopyable
 {
 public:
     latch(int count);

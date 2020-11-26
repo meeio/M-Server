@@ -36,7 +36,7 @@ inline int create_tcp_socket_fd()
     return socket_fd;
 }
 
-inline void read_fd(int fd)
+inline void none_reaturn_read(int fd)
 {
     uint64_t howmany;
     ssize_t  n = ::read(fd, &howmany, sizeof howmany);

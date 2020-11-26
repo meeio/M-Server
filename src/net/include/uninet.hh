@@ -67,6 +67,9 @@ namespace m::sock_op
 void                      bind(int sfd, const sockaddr& addr);
 void                      listen(int sfd);
 std::tuple<int, sockaddr> accept(int sfd);
+void                      close(int sfd);
+void                      shutdown_write(int sfd);
+void                      set_tcp_no_delay(int sfd, bool on);
 int                       get_error(int sockfd);
 
 } // namespace m::sock_op

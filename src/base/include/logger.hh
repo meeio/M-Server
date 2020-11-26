@@ -33,9 +33,8 @@ protected:
 
 private:
     std::stringstream buffer_;
-    int               line_;
-    std::string       file_;
     t_lvl             lvl_;
+    std::string       file_name_;
 };
 
 #define DEBUG_MODE spdlog::set_level(spdlog::level::debug)

@@ -6,7 +6,7 @@
 /*                      CLASS POLLER_WAKER                     */
 /* ----------------------------------------------------------- */
 
-#include "channelable.hh"
+#include "pollable.hh"
 #include "copytype.hh"
 
 
@@ -16,7 +16,7 @@ namespace m
 class poller;
 
 class poller_waker
-    : public channelable
+    : public pollable
 {
 
 public:
@@ -26,7 +26,7 @@ public:
     void wakeup_loop();
 
 protected:
-    virtual void handle_read(const time_point_t&) override;
+    virtual void handle_read(const time_point&) override;
     /* data */
 };
 

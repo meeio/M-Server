@@ -6,7 +6,7 @@ namespace m
 
 
 poller_waker::poller_waker(poller& p)
-    : channelable(p.loop(), fd::create_fd())
+    : pollable(p.loop(), fd::create_fd())
 {
     channel_enable_reading();
 }
@@ -25,7 +25,7 @@ poller_waker::~poller_waker()
  */
 void poller_waker::wakeup_loop()
 {
-    assert( events() & channel::k_read_evnet );
+    assert( channel_is_reading() );
     uint64_t one = 1;
     ssize_t  n   = ::write(fd(), &one, sizeof one);
     if (n != sizeof one)
@@ -35,9 +35,9 @@ void poller_waker::wakeup_loop()
 }
 
 
-void poller_waker::handle_read(const time_point_t&) 
+void poller_waker::handle_read(const time_point&) 
 {
-    fd::read_fd(fd());
+    fd::none_reaturn_read(fd());
 }
 
     

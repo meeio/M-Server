@@ -8,7 +8,9 @@
 #include <mutex>
 #include <vector>
 
+#include "copytype.hh"
 #include "current_thread.hh"
+#include "logger.hh"
 #include "poller.hh"
 #include "poller_waker.hh"
 #include "timer.hh"
@@ -26,6 +28,7 @@ class timer_queue;
 /* ----------------------------------------------------------- */
 
 class event_loop
+    : noncopyable
 {
 public:
     typedef std::function<void()> functor;
@@ -33,12 +36,17 @@ public:
     event_loop();
     ~event_loop();
 
+    std::string to_string()
+    {
+        return fmt::format("[TID:{}]", thread_id_);
+    }
+
     /* ------------------------- OBSERVER ------------------------ */
 
     void assert_in_loop_thread()
     {
-        if (!is_in_loop_thread())
-            assert(false);
+        if ( !is_in_loop_thread() )
+            abort();
     }
 
     bool is_in_loop_thread() const
@@ -53,9 +61,9 @@ public:
 
     /* --------------------- FUNCTION RUNNER --------------------- */
 
-    timer_ptr_t run_at(t_timer_callback, time_point_t);
-    timer_ptr_t run_after(t_timer_callback, int);
-    timer_ptr_t run_every(t_timer_callback, int);
+    timer_ptr run_at(timer_callback, time_point);
+    timer_ptr run_after(timer_callback, int);
+    timer_ptr run_every(timer_callback, int);
 
     void run_in_loop(functor);
     void queue_in_loop(functor);
@@ -66,10 +74,6 @@ public:
     void remove_channel(channel*);
 
 private:
-    /* ------------------------- OPERATOR ------------------------ */
-
-    friend std::ostream& operator<<(std::ostream&, const event_loop&);
-
     /* --------------------- FUNCTION RUNNER --------------------- */
 
     void do_pending_functors();
@@ -90,12 +94,6 @@ private:
     std::vector<functor> pending_functors_;
     std::mutex           pending_functors_mutex_;
 };
-
-inline std::ostream& operator<<(std::ostream& os, const event_loop& loop)
-{
-    os << "[event_loop: " << &loop << ": T" << loop.thread_id_ << "]";
-    return os;
-}
 
 } // namespace m
 

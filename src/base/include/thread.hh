@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "latch.hh"
+#include "copytype.hh"
 
 using std::string;
 
@@ -13,9 +14,10 @@ namespace m
 {
 
 class thread
+    : noncopyable
 {
 public:
-    typedef std::function<void()> t_thread_fun;
+    typedef std::time_point<void()> t_thread_fun;
 
     thread(t_thread_fun, const string& name = string());
     ~thread();

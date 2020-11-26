@@ -8,7 +8,7 @@
 namespace m
 {
 
-poller::poller(event_loop* owner)
+poller::poller(event_loop& owner)
     : owner_loop_(owner)
 {
 }
@@ -103,7 +103,7 @@ void poller::remove_channel(channel* ch)
 
 void poller::assert_in_loop_thread()
 {
-    owner_loop_->assert_in_loop_thread();
+    owner_loop_.assert_in_loop_thread();
 }
 
 } // namespace m

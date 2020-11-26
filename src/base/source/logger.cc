@@ -1,4 +1,5 @@
 #include "logger.hh"
+#include "execinfo.h"
 
 log_stream::t_ptr_log log_stream::logger_ = spdlog::default_logger();
 
@@ -7,14 +8,15 @@ log_stream::log_stream(t_lvl           lvl,
     : lvl_(lvl)
     , buffer_()
 {
-    std::string file_line = fmt::format(
+    file_name_ = fmt::format(
         "{}:{}", strrchr(loc.file_name(), '/'), loc.line());
 
     buffer_ << fmt::format(
-        "[{:}] [{:}] ", file_line, loc.function_name());
+        "[{:-^25}] |> ",    loc.function_name());
 }
 
 log_stream::~log_stream()
 {
-    log_stream::logger_->log(lvl_, buffer_.str());
+    log_stream::logger_->log(
+        lvl_, buffer_.str() + " | " + file_name_ );
 }

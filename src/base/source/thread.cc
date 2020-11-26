@@ -38,7 +38,7 @@ thread::thread(t_thread_fun func, const string& name)
     , start_(false)
     , thread_handle(nullptr)
 {
-    if (name_.empty())
+    if ( name_.empty() )
     {
         name_ = "[t#" + std::to_string(++created_num_) + "]";
     }
@@ -47,7 +47,7 @@ thread::thread(t_thread_fun func, const string& name)
 thread::~thread()
 {
     start_ = false;
-    if (thread_handle != nullptr && thread_handle->joinable())
+    if ( thread_handle != nullptr && thread_handle->joinable() )
     {
         thread_handle->detach();
     }
@@ -57,27 +57,21 @@ thread::~thread()
 void thread::run_in_thread()
 {
     start_ = true;
-    tid = current_thread::tid();
+    tid    = current_thread::tid();
     // latch_.count_down();
-
-    TRACE << "thread instance " << name_
-         << " running in thread: " << tid;
 
     try
     {
         func_();
     }
-    catch (const std::exception& ex)
+    catch ( const std::exception& ex )
     {
         abort();
     }
-    catch (...)
+    catch ( ... )
     {
         throw; // rethrow
     }
-
-    TRACE << "thread instance " << name_
-         << " finished in thread: " << tid;
 }
 
 void thread::star()
@@ -87,11 +81,11 @@ void thread::star()
         thread_handle = new std::thread([&] { run_in_thread(); });
         // latch_.wait();
     }
-    catch (const std::system_error& e)
+    catch ( const std::system_error& e )
     {
         std::cerr << e.what() << '\n';
     }
-    catch (const std::exception& e)
+    catch ( const std::exception& e )
     {
         std::cerr << e.what() << '\n';
     }
