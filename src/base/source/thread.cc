@@ -30,7 +30,7 @@ namespace m
 
 int thread::created_num_ = 0;
 
-thread::thread(t_thread_fun func, const string& name)
+thread::thread(thread_fun func, const string& name)
     : func_(func)
     , name_(name)
     , tid(-1)

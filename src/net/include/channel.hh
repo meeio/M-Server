@@ -19,7 +19,7 @@ class channel
 {
 public:
     // typedef std::function<void()>                    event_callback;
-    typedef std::time_point<void(const time_point&)> event_callback;
+    typedef std::function<void(const time_point&)> event_callback;
 
     /* ----------------------- CONSTRUCTORS ---------------------- */
 

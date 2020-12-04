@@ -6,13 +6,37 @@
 #include <set>
 #include <vector>
 
+#include "pollee.hh"
 #include "timer.hh"
-#include "pollable.hh"
 
 namespace m
 {
 
 class event_loop;
+
+/* ----------------------------------------------------------- */
+/*                      CLASS TIMER_HANDLE                     */
+/* ----------------------------------------------------------- */
+
+class timer_handle
+{
+public:
+    timer_handle(event_loop& loop, timer& ptimer)
+        : loop_(loop)
+        , timer_(ptimer)
+    {
+    }
+    timer& get_timer() { return timer_; }
+    void   cancel_timer();
+
+private:
+    event_loop& loop_;
+    timer&      timer_;
+};
+
+/* ----------------------------------------------------------- */
+/*                      CLASS TIMER_QUEUE                      */
+/* ----------------------------------------------------------- */
 
 class timer_queue
     : pollable
@@ -21,23 +45,49 @@ public:
     timer_queue(event_loop& loop);
     ~timer_queue();
 
-    timer_ptr add_timer(
-        timer_callback, time_point, time_duration);
+    /// @brief thread-safe function to add timer
+    timer_handle add_timer(timer_callback, time_point, time_duration);
+
+    /// @brief thread-safe function to remove timer
+    void cancel_timer(timer&);
 
 protected:
+    /// @details excutes timers that have expired and then @c restart
+    /// timers if it needed, and @c reset_expieration_from_now for
+    /// the next read event.
     void handle_read(const time_point&) override;
-    
-private:
-    typedef std::multimap<time_point, timer_ptr> timer_map_t_;
-    typedef std::vector<timer_ptr>                 timer_list_t_;
 
-    void reset_timers(const timer_list_t_& expired, time_point now);
+private:
+    /* ------------------------ INNERTYPES ----------------------- */
+    typedef std::shared_ptr<class timer>         timer_ptr;
+    typedef std::multimap<time_point, timer_ptr> timer_map;
+    typedef std::vector<timer_ptr>               timer_list;
+
+    /* --------------------- TIMERS MODIFIERS -------------------- */
+
+    /// @brief add timer in loop is not thread safe but in loop.
+    void add_timer_in_loop(timer_ptr);
+    void cancel_timer_in_loop(timer&);
+
+    /// @brief reset timers to timeporint if timer need @c restart.
+    void reset_timers(const timer_list expired, time_point now);
+
+    /// @brief insert the timer and return ture if this timer is the first
+    bool insert(timer_ptr);
+
+    /// @brief return the expired timers by gien time_point
+    timer_list pop_expired(time_point now);
+
+    /* -------------------- CHANNEL MODIFIERS -------------------- */
+
+    /// @brief reset this channel's read event to trigge in time.
     void reset_expieration_from_now(time_point);
 
-    bool          insert(timer_ptr);
-    timer_list_t_ pop_expired(time_point now);
+    /* ------------------------ ATTRIBUTE ------------------------ */
 
-    timer_map_t_ timers_;
+    event_loop& loop_;
+    pollee      pollee_;
+    timer_map   timers_;
 };
 
 } // namespace m

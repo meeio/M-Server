@@ -11,8 +11,8 @@
 namespace m
 {
 
-typedef std::function<void()>        timer_callback;
-typedef std::shared_ptr<class timer> timer_ptr;
+typedef std::function<void()> timer_callback;
+// typedef std::shared_ptr<class timer> timer_ptr;
 
 namespace time
 {
@@ -28,15 +28,15 @@ public:
     void restart(time_point);
 
     time_point expiration() { return expiration_; }
-    const int    sequence() { return sequence_; }
-    bool         reapeat() { return reapeat_; }
+    const int  sequence() { return sequence_; }
+    bool       reapeat() { return reapeat_; }
 
 private:
     timer_callback callback_;
     time_duration  interval_;
     time_point     expiration_;
-    bool             reapeat_;
-    const int        sequence_;
+    bool           reapeat_;
+    const int      sequence_;
 
     static std::atomic_int s_num_created_;
 };

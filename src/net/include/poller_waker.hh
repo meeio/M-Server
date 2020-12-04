@@ -6,7 +6,7 @@
 /*                      CLASS POLLER_WAKER                     */
 /* ----------------------------------------------------------- */
 
-#include "pollable.hh"
+#include "pollee.hh"
 #include "copytype.hh"
 
 
@@ -27,7 +27,9 @@ public:
 
 protected:
     virtual void handle_read(const time_point&) override;
-    /* data */
+
+private:
+    pollee pollee_;
 };
 
 } // namespace m

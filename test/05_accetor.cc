@@ -24,7 +24,7 @@ int main(int argc, const char** argv)
     m::inet_address listen_addr(LOCAL, listen_port);
     m::event_loop   loop;
 
-    m::acceptor acceptor(&loop, listen_addr);
+    m::acceptor acceptor(loop, listen_addr);
     acceptor.set_new_conn_callback(new_connection);
     acceptor.listen();
 

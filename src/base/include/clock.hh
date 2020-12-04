@@ -20,7 +20,7 @@ std::string time_point_to_str(time_point);
 
 std::tuple<int, long> parse_time_duration(time_duration dur);
 
-time_duration get_duration_ms(int);
+time_duration get_duration_from_ms(int);
 
 inline time_point now() { return std::chrono::steady_clock::now(); }
 

@@ -2,6 +2,7 @@
 
 #include "event_loop.hh"
 #include "logger.hh"
+#include "timer.hh"
 
 #include <functional>
 #include <stdio.h>
@@ -18,7 +19,7 @@ void print_tid()
 void print(const char* msg)
 {
     INFO << msg;
-    if (++cnt == 20)
+    if ( ++cnt == 20 )
     {
         g_loop->quit();
     }
@@ -34,11 +35,18 @@ int main()
     m::event_loop loop;
     g_loop = &loop;
 
-    loop.run_after(std::bind(print, "once1"), 0);
+    auto t0 = loop.run_after(std::bind(print, "once1"), 0);
+    DEBUG << &t0;
     // loop.run_after(std::bind(print, "once1.5"), 1500);
-    loop.run_every(std::bind(print, "every2.5"), 5500);
+    auto t1 = loop.run_every(std::bind(print, "every2.5"), 5500);
+    DEBUG << &t1;
+
     // loop.run_after(3.5, std::bind(print, "once3.5"));
-    loop.run_every(std::bind(print, "every2"), 7700);
+    auto t2 = loop.run_every(std::bind(print, "every2"), 7700);
+    DEBUG << &t2;
+
+    t1.cancel_timer();
+
     // loop.run_every(3, std::bind(print, "every3"));
 
     loop.loop();

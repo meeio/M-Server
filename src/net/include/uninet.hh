@@ -64,11 +64,12 @@ sockaddr_in construct_sockaddr_in(int sockfd);
 namespace m::sock_op
 {
 
-void                      bind(int sfd, const sockaddr& addr);
-void                      listen(int sfd);
+int                       connect(int sfd, const sockaddr& addr);
+int                       bind(int sfd, const sockaddr& addr);
+int                       listen(int sfd);
 std::tuple<int, sockaddr> accept(int sfd);
-void                      close(int sfd);
-void                      shutdown_write(int sfd);
+int                       close(int sfd);
+int                       shutdown_write(int sfd);
 void                      set_tcp_no_delay(int sfd, bool on);
 int                       get_error(int sockfd);
 

@@ -61,9 +61,10 @@ public:
 
     /* --------------------- FUNCTION RUNNER --------------------- */
 
-    timer_ptr run_at(timer_callback, time_point);
-    timer_ptr run_after(timer_callback, int);
-    timer_ptr run_every(timer_callback, int);
+    timer_handle run_at(timer_callback, time_point);
+    timer_handle run_after(timer_callback, int);
+    timer_handle run_every(timer_callback, int);
+    void         cancel_timer(timer&);
 
     void run_in_loop(functor);
     void queue_in_loop(functor);

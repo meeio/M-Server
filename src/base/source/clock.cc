@@ -12,7 +12,7 @@ std::tuple<int, long> parse_time_duration(time_duration dur)
     return {sec, nano};
 }
 
-time_duration get_duration_ms(int milliseconds)
+time_duration get_duration_from_ms(int milliseconds)
 {
     long in_nano = milliseconds * 1e6;
     return time_duration(in_nano);

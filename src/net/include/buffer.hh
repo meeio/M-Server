@@ -2,6 +2,8 @@
 #define __BUFFER_H__
 
 #include "copytype.hh"
+#include "socket.hh"
+
 #include <string>
 #include <vector>
 #include <assert.h>
@@ -49,7 +51,7 @@ public:
 
     /* ----------------------- MODIFIERS ------------------------ */
 
-    size_t read_fd(int fd);
+    size_t read_socket(socket&);
 
     void append(const char* data, size_t len)
     {

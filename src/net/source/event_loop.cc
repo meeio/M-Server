@@ -83,24 +83,29 @@ void event_loop::remove_channel(channel* ch)
     poller_.remove_channel(ch);
 }
 
-timer_ptr event_loop::run_at(timer_callback cb, time_point tp)
+timer_handle event_loop::run_at(timer_callback cb, time_point tp)
 {
-    time_duration dur = clock::get_duration_ms(0);
+    time_duration dur = clock::get_duration_from_ms(0);
     return timers_.add_timer(cb, tp, dur);
 }
 
-timer_ptr event_loop::run_after(timer_callback cb, int delay)
+timer_handle event_loop::run_after(timer_callback cb, int delay_ms)
 {
     time_point    when       = clock::now();
-    time_duration delay_dura = clock::get_duration_ms(delay);
+    time_duration delay_dura = clock::get_duration_from_ms(delay_ms);
     return run_at(cb, when + delay_dura);
 }
 
-timer_ptr event_loop::run_every(timer_callback cb, int intervel)
+timer_handle event_loop::run_every(timer_callback cb, int intervel_ms)
 {
     time_point    when       = clock::now();
-    time_duration inter_dura = clock::get_duration_ms(intervel);
+    time_duration inter_dura = clock::get_duration_from_ms(intervel_ms);
     return timers_.add_timer(cb, when + inter_dura, inter_dura);
+}
+
+void event_loop::cancel_timer(timer& rtimer) 
+{
+    timers_.cancel_timer(rtimer);
 }
 
 void event_loop::run_in_loop(functor fc)

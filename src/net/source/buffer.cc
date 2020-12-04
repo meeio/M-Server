@@ -7,7 +7,7 @@
 namespace m
 {
 
-size_t buffer::read_fd(int fd)
+size_t buffer::read_socket(socket& sok)
 {
     char extra_buffer[64 * 1024];
     const size_t buf_writeable = writeable_bytes();
@@ -20,7 +20,7 @@ size_t buffer::read_fd(int fd)
 
     // ! here readv is a scatter/gather IO
     // if have many buffer to read, only need to call 'read' once.
-    const ssize_t total_readed = readv(fd, vec, 2);
+    const ssize_t total_readed = sok.readv(vec, 2);
     if (total_readed > 0)
     {
         if (buf_writeable > total_readed)

@@ -1,14 +1,14 @@
 #ifndef __TCP_CONNECTION_H__
 #define __TCP_CONNECTION_H__
 
+#include <functional>
 #include <memory>
 #include <string>
-#include <functional>
 
 #include "buffer.hh"
 #include "inet_address.hh"
 #include "logger.hh"
-#include "pollable.hh"
+#include "pollee.hh"
 #include "socket.hh"
 
 namespace m
@@ -52,19 +52,24 @@ class tcp_connection
     , public pollable
 {
 public:
+    /* ----------------------- CONSTRUCTORS ---------------------- */
+
     tcp_connection(event_loop&         loop,
                    const std::string&  name,
-                   const int           socket_fd,
-                   const inet_address& host_addr,
+                   socket&&            sock,
                    const inet_address& peer_addr);
 
     ~tcp_connection();
+
+    /* ------------------------- OBSERVER ------------------------ */
 
     const std::string to_string() const
     {
         return fmt::format(
             "[{}:{}->{}]", name_, socket_.fd(), peer_addr_.adress());
     }
+
+    event_loop& loop() { return loop_; }
 
     /* ----------------------- CB MODIFIERS ---------------------- */
 
@@ -144,6 +149,9 @@ private:
     void send_in_loop(const std::string&, const size_t);
     void shotdown_in_loop();
 
+    /* ------------------------ ATTRIBUTES ----------------------- */
+
+
     std::string name_;
     state_e     state_;
 
@@ -161,6 +169,9 @@ private:
     tcp_cb::close_callback          close_cb_;
     tcp_cb::write_complete_callback write_complete_cb_;
     tcp_cb::high_watermark_cb       high_watermark_cb_;
+    
+    pollee      pollee_;
+    event_loop& loop_;
 };
 
 } // namespace m

@@ -1,20 +1,20 @@
 #include "poller_waker.hh"
-#include "sys_fd.hh"
+
+#include "pollee.hh"
 #include "poller.hh"
+#include "sys_fd.hh"
+
 namespace m
 {
 
-
 poller_waker::poller_waker(poller& p)
-    : pollable(p.loop(), fd::create_fd())
+    : pollee_(p.loop(), this, fd::create_fd())
 {
-    channel_enable_reading();
+    pollee_.enable_reading();
 }
 
-
-poller_waker::~poller_waker() 
+poller_waker::~poller_waker()
 {
-
 }
 
 /**
@@ -25,20 +25,18 @@ poller_waker::~poller_waker()
  */
 void poller_waker::wakeup_loop()
 {
-    assert( channel_is_reading() );
+    assert(pollee_.is_reading());
     uint64_t one = 1;
-    ssize_t  n   = ::write(fd(), &one, sizeof one);
-    if (n != sizeof one)
+    ssize_t  n   = ::write(pollee_.fd(), &one, sizeof one);
+    if ( n != sizeof one )
     {
         ERR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
     }
 }
 
-
-void poller_waker::handle_read(const time_point&) 
+void poller_waker::handle_read(const time_point&)
 {
-    fd::none_reaturn_read(fd());
+    fd::none_reaturn_read(pollee_.fd());
 }
 
-    
 } // namespace m
