@@ -20,7 +20,7 @@ namespace m
 {
 
 class channel;
-class poller;
+class spoller;
 class timer_queue;
 
 /* ----------------------------------------------------------- */
@@ -87,7 +87,7 @@ private:
     const int thread_id_;
 
     int          poll_time_ms_;
-    poller       poller_;
+    poller::ptr  poller_;
     poller_waker poller_waker_;
 
     timer_queue timers_;

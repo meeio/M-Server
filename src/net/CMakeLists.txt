@@ -2,6 +2,8 @@
 file(GLOB ALL_NET_FILES
     "include/*.hh"
     "source/*.cc"
+    "include/poll/*.hh"
+    "source/poll/*.cc"
 )
 
 include_directories(../base/include)

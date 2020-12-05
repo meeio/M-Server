@@ -3,7 +3,7 @@
 #include "channel.hh"
 #include "current_thread.hh"
 #include "logger.hh"
-#include "poller.hh"
+#include "poll/spoller.hh"
 #include "sys_fd.hh"
 #include "timer_queue.hh"
 #include "poller_waker.hh"
@@ -18,8 +18,8 @@ event_loop::event_loop()
     , looping_(false)
     , poll_time_ms_(1000)
     , timers_(*this)
-    , poller_(*this)
-    , poller_waker_(poller_)
+    , poller_(poller::create_poller(*this))
+    , poller_waker_(*poller_)
 {    
     if (__loop_of_this_thread != nullptr)
         ERR << "another event_loop object has been cread "
@@ -44,7 +44,7 @@ void event_loop::loop()
 
     while (!quit_)
     {
-        poller::channel_vector_t active_channels = poller_.poll(poll_time_ms_);
+        poller::channel_vector active_channels = poller_->poll(poll_time_ms_);
 
         time_point poll_time = clock::now();
 
@@ -73,14 +73,14 @@ void event_loop::update_channel(channel* ch)
 {
     assert(&ch->owner_loop() == this);
     assert_in_loop_thread();
-    poller_.update_channel(ch);
+    poller_->update_channel(ch);
 }
 
 void event_loop::remove_channel(channel* ch)
 {
     assert(&ch->owner_loop() == this);
     assert_in_loop_thread();
-    poller_.remove_channel(ch);
+    poller_->remove_channel(ch);
 }
 
 timer_handle event_loop::run_at(timer_callback cb, time_point tp)
