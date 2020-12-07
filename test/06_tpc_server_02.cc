@@ -11,9 +11,7 @@ void on_connection(const m::tcp_connection_ptr& p_conn)
         DEBUG << "on_connection : connection";
 
         p_conn->send("AAAAAAAAAAAAA");
-        DEBUG << "after AAAA";
         p_conn->send("BBBBBBBBBBBBB");
-        DEBUG << "after BBBB";
         p_conn->shotdown();
     }
     else
@@ -31,17 +29,17 @@ void on_message(const m::tcp_connection_ptr& p_conn,
           << " at " << m::clock::time_point_to_str(revice_time);
 }
 
-int main(int argc, char const* argv[])
+int main(int, char**)
 {
     TRACE_MODE;
 
     m::event_loop   loop;
-    m::inet_address listen_addr(LOCAL, 11222);
+    m::inet_address listen_addr(LOCAL, 11223);
     m::tcp_server   server(loop, listen_addr);
 
     server.set_connection_callback(on_connection);
     server.set_message_callback(on_message);
-    server.set_thread_num(5);
+    // server.set_thread_num(1);
     server.start();
 
     loop.loop();

@@ -2,6 +2,7 @@
 
 #include "event_loop.hh"
 #include "logger.hh"
+#include "poll_handle.hh"
 #include <experimental/source_location>
 #include <unistd.h>
 
@@ -12,15 +13,16 @@ tcp_connection::tcp_connection(event_loop&         loop,
                                const std::string&  name,
                                socket&&            sock,
                                const inet_address& peer_addr)
-    : loop_(loop)
-    , name_(name)
+    : name_(name)
     , state_(state_e::connecting)
     , socket_(std::forward<socket>(sock))
-    , pollee_(loop, this, socket_.fd())
+    , high_watermark_(64 * 1024 * 1024)
     , host_addr_(socket_.host_addr())
     , peer_addr_(peer_addr)
-    , high_watermark_(64 * 1024 * 1024)
+    , loop_(loop)
+    , poll_hd_(loop_.register_polling(socket_.fd()))
 {
+    poll_hd_.bind_handler(*this);
 }
 
 tcp_connection::~tcp_connection()
@@ -35,7 +37,7 @@ void tcp_connection::connection_estabalished()
     assert(state_ == state_e::connecting);
     set_state(state_e::connected);
 
-    pollee_.enable_reading();
+    poll_hd_.enable_reading();
 
     connection_cb_(shared_from_this());
 }
@@ -49,8 +51,8 @@ void tcp_connection::connection_destroyed()
     set_state(state_e::disconnecting);
 
     // remove the channel in poller
-    pollee_.disable_all();
-
+    poll_hd_.disable_all();
+    
     connection_cb_(shared_from_this());
 }
 
@@ -101,10 +103,10 @@ void tcp_connection::handle_read(const time_point& recive_time)
     }
 }
 
-void tcp_connection::handle_write(const time_point& when)
+void tcp_connection::handle_write(const time_point&)
 {
     loop_.assert_in_loop_thread();
-    if ( pollee_.is_writing() )
+    if ( poll_hd_.is_writing() )
     {
         ssize_t num_write = socket_.write(oup_buffer_.peek(),
                                           oup_buffer_.writeable_bytes());
@@ -113,7 +115,7 @@ void tcp_connection::handle_write(const time_point& when)
             oup_buffer_.retrieve(num_write);
             if ( oup_buffer_.readable_bytes() == 0 )
             {
-                pollee_.disable_writing();
+                poll_hd_.disable_writing();
 
                 if ( write_complete_cb_ )
                 {
@@ -137,15 +139,15 @@ void tcp_connection::handle_write(const time_point& when)
     }
 }
 
-void tcp_connection::handle_close(const time_point& when)
+void tcp_connection::handle_close(const time_point&)
 {
     loop_.assert_in_loop_thread();
     assert(state_ == state_e::disconnecting);
-    pollee_.disable_all();
+    poll_hd_.disable_all();
     close_cb_(shared_from_this());
 }
 
-void tcp_connection::handle_error(const time_point& when)
+void tcp_connection::handle_error(const time_point&)
 {
     int err = socket_.get_error();
     ERR << "tcp_connection::handle_error [" << name_
@@ -156,11 +158,11 @@ void tcp_connection::send_in_loop(const std::string& msg, const size_t num_total
 {
     loop_.assert_in_loop_thread();
 
-    ssize_t num_write  = 0;
-    ssize_t num_remain = num_total;
+    size_t num_write  = 0;
+    size_t num_remain = num_total;
 
     // if nothing in the output queue, try directly write
-    if ( !pollee_.is_writing() && oup_buffer_.readable_bytes() == 0 )
+    if ( !poll_hd_.is_writing() && oup_buffer_.readable_bytes() == 0 )
     {
         num_write = socket_.write(msg.data(), num_total);
         if ( num_write > 0 )
@@ -168,7 +170,7 @@ void tcp_connection::send_in_loop(const std::string& msg, const size_t num_total
             num_remain -= num_write;
             if ( num_remain > 0 )
             {
-                TRACE << "need to write more for " << pollee_.fd();
+                TRACE << "need to write more for " << poll_hd_.fd();
             }
         }
         else
@@ -178,7 +180,7 @@ void tcp_connection::send_in_loop(const std::string& msg, const size_t num_total
             num_remain = num_total;
             if ( errno != EWOULDBLOCK )
             {
-                ERR << "write to " << pollee_.fd() << " with " << errno;
+                ERR << "write to " << poll_hd_.fd() << " with " << errno;
             }
         }
     }
@@ -186,8 +188,8 @@ void tcp_connection::send_in_loop(const std::string& msg, const size_t num_total
     assert(num_remain <= num_total);
     if ( num_remain > 0 )
     {
-        ssize_t num_current_buffer = oup_buffer_.readable_bytes();
-        ssize_t num_after_append   = num_current_buffer + num_remain;
+        size_t num_current_buffer = oup_buffer_.readable_bytes();
+        size_t num_after_append   = num_current_buffer + num_remain;
         if ( high_watermark_cb_
              && num_after_append > high_watermark_
              && num_current_buffer < high_watermark_ )
@@ -196,9 +198,9 @@ void tcp_connection::send_in_loop(const std::string& msg, const size_t num_total
         }
 
         oup_buffer_.append(msg.data() + num_write, num_remain);
-        if ( !pollee_.is_writing() )
+        if ( !poll_hd_.is_writing() )
         {
-            pollee_.enable_writing();
+            poll_hd_.enable_writing();
         }
     }
     else if ( write_complete_cb_ )
@@ -212,7 +214,7 @@ void tcp_connection::shotdown_in_loop()
 {
     loop_.assert_in_loop_thread();
 
-    if ( !pollee_.is_writing() )
+    if ( !poll_hd_.is_writing() )
     {
         socket_.shutdown_write();
     }

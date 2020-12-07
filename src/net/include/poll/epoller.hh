@@ -23,8 +23,8 @@ public:
 
     /* ---------------------- POLL FUNCTION ---------------------- */
     virtual channel_vector poll(int timeout_ms);
-    virtual void           update_channel(channel*);
-    virtual void           remove_channel(channel*);
+    virtual void           update_handle(poll_handle*);
+    virtual void           remove_handle(poll_handle*);
 
 private:
 

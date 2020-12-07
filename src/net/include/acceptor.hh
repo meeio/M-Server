@@ -1,19 +1,20 @@
 #ifndef __ACCEPTOR_H__
 #define __ACCEPTOR_H__
 
-#include "channel.hh"
 #include "copytype.hh"
-#include "inet_address.hh"
-#include "pollee.hh"
+#include "poll_handler.hh"
 #include "socket.hh"
 
 namespace m
 {
 
 class event_loop;
+class poll_handle;
+class inet_address;
 
 class acceptor
-    : public pollable
+    : public poll_handler
+    , public noncopyable
 {
 public:
     typedef std::function<void(socket, const inet_address&)>
@@ -30,14 +31,12 @@ protected:
     virtual void handle_read(const time_point&) override;
 
 private:
-    void handle_new_conn_();
-
     new_coon_callback new_conn_cb_;
     socket            accept_socket_;
+    bool              is_listing;
 
-    bool is_listing;
-    event_loop& loop_;
-    pollee      pollee_;
+    event_loop&  loop_;
+    poll_handle& poll_hd_;
 };
 
 } // namespace m

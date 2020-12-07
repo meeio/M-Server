@@ -19,13 +19,13 @@ void on_connection(const m::tcp_connection_ptr& p_conn)
 
 void on_message(const m::tcp_connection_ptr& p_conn,
                 m::buffer& buf, 
-                m::time_point revice_time)
+                m::time_point)
 {
     DEBUG << "recive " << buf.readable_bytes() << " btyes "
           << "from " << p_conn->name();
 }
 
-int main(int argc, char const* argv[])
+int main(int, char const**)
 {
     TRACE_MODE;
 

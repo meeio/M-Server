@@ -8,7 +8,7 @@
 #include "buffer.hh"
 #include "inet_address.hh"
 #include "logger.hh"
-#include "pollee.hh"
+#include "poll_handler.hh"
 #include "socket.hh"
 
 namespace m
@@ -47,9 +47,12 @@ typedef std::function<void(const tcp_connection_ptr&, size_t water_mark)>
 /*                     TCP_CONNECTION CLASS                    */
 /* ----------------------------------------------------------- */
 
+class poll_handle;
+class event_loop;
+
 class tcp_connection
     : public std::enable_shared_from_this<tcp_connection>
-    , public pollable
+    , public poll_handler
 {
 public:
     /* ----------------------- CONSTRUCTORS ---------------------- */
@@ -100,11 +103,11 @@ public:
 
     /* --------------------- STATE INFOMATION -------------------- */
 
-    const std::string  name() const { return name_; }
-    const inet_address host_addr() const { return host_addr_; }
-    const inet_address peer_addr() const { return peer_addr_; }
+    std::string  name() const { return name_; }
+    inet_address host_addr() const { return host_addr_; }
+    inet_address peer_addr() const { return peer_addr_; }
 
-    const bool connected() const { return state_ == state_e::connected; }
+    bool connected() const { return state_ == state_e::connected; }
 
     /* ------------------------ SOCKET OP ------------------------ */
 
@@ -127,7 +130,7 @@ public:
     void connection_estabalished(); // call only once
     void connection_destroyed();    // call only once
 
-protected:
+
     /* ---------------------- EVENT HANDLER ---------------------- */
 
     virtual void handle_read(const time_point& when) override;
@@ -151,7 +154,6 @@ private:
 
     /* ------------------------ ATTRIBUTES ----------------------- */
 
-
     std::string name_;
     state_e     state_;
 
@@ -169,9 +171,9 @@ private:
     tcp_cb::close_callback          close_cb_;
     tcp_cb::write_complete_callback write_complete_cb_;
     tcp_cb::high_watermark_cb       high_watermark_cb_;
-    
-    pollee      pollee_;
-    event_loop& loop_;
+
+    event_loop&  loop_;
+    poll_handle& poll_hd_;
 };
 
 } // namespace m

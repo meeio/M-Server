@@ -4,11 +4,11 @@
 #include <map>
 #include <vector>
 
-#include <poll.h>
 #include <tuple>
 
 #include "../poller.hh"
 
+struct pollfd;
 
 namespace m
 {
@@ -21,18 +21,20 @@ public:
     ~spoller();
 
     virtual channel_vector poll(int timeout_ms) override;
-    virtual void           update_channel(channel*) override;
-    virtual void           remove_channel(channel*) override;
-
+    virtual poll_handle&   register_polling(int) override;
+    virtual void           update_handle(poll_handle&) override;
+    virtual void           remove_handle(poll_handle&) override;
 
 private:
-    typedef std::vector<pollfd>     pollfd_vector;
-    typedef std::map<int, channel*> channel_map;
+    static const int                     IGNORED_FD = -1;
+    typedef std::unique_ptr<poll_handle> handle_ptr;
+    typedef std::vector<pollfd>          pollfd_list;
+    typedef std::map<int, handle_ptr>    handle_list;
 
-    channel_vector find_active_channel(int);
+    channel_vector find_active_handles(int);
 
-    pollfd_vector pollfds_;
-    channel_map   channels_;
+    pollfd_list pollfds_;
+    handle_list handles_;
 };
 
 } // namespace m

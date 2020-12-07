@@ -89,7 +89,7 @@ int socket::get_error()
 
 ssize_t socket::readv(iovec* vec, int count)
 {
-    return ::readv(socket_fd_, vec, 2);
+    return ::readv(socket_fd_, vec, count);
 }
 
 } // namespace m

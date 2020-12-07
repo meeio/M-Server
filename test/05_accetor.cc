@@ -4,14 +4,14 @@
 
 #include <unistd.h>
 
-void new_connection(int sfd, const m::inet_address& peer_addr)
+void new_connection(m::socket socket, const m::inet_address& peer_addr)
 {
     INFO << "new conn from " << peer_addr
-         << " is opened in " << sfd;
-    ::write(sfd, "how are you?\n", 13);
+         << " is opened in " << socket.fd();
+    ::write(socket.fd(), "how are you?\n", 13);
 }
 
-int main(int argc, const char** argv)
+int main(int, const char**)
 {
 
     TRACE_MODE;

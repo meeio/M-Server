@@ -12,14 +12,14 @@ void cb(m::socket sock)
     g_loop->quit();
 }
 
-int main(int argc, char* argv[])
+int main(int, char**)
 {
 
     DEBUG_MODE;
 
     m::event_loop loop;
     g_loop = &loop;
-    m::inet_address addr("127.0.0.1", 11222);
+    m::inet_address addr("127.0.0.1", 11224);
     m::connector    aconnector(loop, addr);
     aconnector.set_onnection_cb(cb);
     aconnector.connect();

@@ -2,9 +2,9 @@
 #define __CONNECTOR_H__
 
 #include "inet_address.hh"
-#include "pollee.hh"
 #include "socket.hh"
 #include "timer_queue.hh"
+#include "poll_handler.hh"
 
 namespace m
 {
@@ -12,7 +12,7 @@ namespace m
 class event_loop;
 
 class connector
-    : public pollable
+    : public poll_handler
 {
 public:
     typedef std::function<void(socket)> new_connection_cb;
@@ -62,7 +62,7 @@ private:
     /* ------------------------ ATTRIBUTES ----------------------- */
 
     event_loop&             loop_;
-    std::unique_ptr<pollee> ppollee_;
+    poll_handle*            poll_hd_;
 
     state                   state_;
     std::unique_ptr<socket> psocket_;

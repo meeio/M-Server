@@ -33,10 +33,12 @@ private:
     void run_in_thread();
 
     int              tid;
-    bool             start_;
     string           name_;
-    thread_fun       func_;
     latch            latch_;
+
+    thread_fun       func_;
+    
+    bool             start_;
     t_thread_handel* thread_handle;
 
     static int created_num_;

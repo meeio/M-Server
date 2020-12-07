@@ -1,6 +1,6 @@
 #include "event_loop.hh"
 
-#include "channel.hh"
+#include "poll_handle.hh"
 #include "current_thread.hh"
 #include "logger.hh"
 #include "poll/spoller.hh"
@@ -15,11 +15,13 @@ thread_local event_loop* __loop_of_this_thread = nullptr;
 
 event_loop::event_loop()
     : thread_id_(current_thread::tid())
-    , looping_(false)
     , poll_time_ms_(1000)
-    , timers_(*this)
     , poller_(poller::create_poller(*this))
     , poller_waker_(*poller_)
+    , timers_(*this)
+    , looping_(false)
+    , quit_(false)
+    , calling_pending_functor_(false)
 {    
     if (__loop_of_this_thread != nullptr)
         ERR << "another event_loop object has been cread "
@@ -48,9 +50,9 @@ void event_loop::loop()
 
         time_point poll_time = clock::now();
 
-        for (channel* ch : active_channels)
+        for (poll_handle& ch : active_channels)
         {
-            ch->handle_event(poll_time);
+            ch.handle_event(poll_time);
         }
         do_pending_functors();
     }
@@ -69,18 +71,26 @@ void event_loop::quit()
     }
 }
 
-void event_loop::update_channel(channel* ch)
+
+poll_handle& event_loop::register_polling(int fd) 
 {
-    assert(&ch->owner_loop() == this);
     assert_in_loop_thread();
-    poller_->update_channel(ch);
+    return poller_->register_polling(fd);
 }
 
-void event_loop::remove_channel(channel* ch)
+
+void event_loop::update_poll_handle(poll_handle& ph)
 {
-    assert(&ch->owner_loop() == this);
+    assert(&ph.owner_loop() == this);
     assert_in_loop_thread();
-    poller_->remove_channel(ch);
+    poller_->update_handle(ph);
+}
+
+void event_loop::remove_poll_handle(poll_handle& ph)
+{
+    assert(&ph.owner_loop() == this);
+    assert_in_loop_thread();
+    poller_->remove_handle(ph);
 }
 
 timer_handle event_loop::run_at(timer_callback cb, time_point tp)

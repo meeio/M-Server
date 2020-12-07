@@ -6,12 +6,13 @@
 #include <set>
 #include <vector>
 
-#include "pollee.hh"
+#include "poll_handler.hh"
 #include "timer.hh"
 
 namespace m
 {
 
+class poll_handle;
 class event_loop;
 
 /* ----------------------------------------------------------- */
@@ -39,7 +40,7 @@ private:
 /* ----------------------------------------------------------- */
 
 class timer_queue
-    : pollable
+    : poll_handler
 {
 public:
     timer_queue(event_loop& loop);
@@ -55,7 +56,7 @@ protected:
     /// @details excutes timers that have expired and then @c restart
     /// timers if it needed, and @c reset_expieration_from_now for
     /// the next read event.
-    void handle_read(const time_point&) override;
+    virtual void handle_read(const time_point&) override;
 
 private:
     /* ------------------------ INNERTYPES ----------------------- */
@@ -85,9 +86,9 @@ private:
 
     /* ------------------------ ATTRIBUTE ------------------------ */
 
-    event_loop& loop_;
-    pollee      pollee_;
-    timer_map   timers_;
+    event_loop&  loop_;
+    poll_handle& poll_hd_;
+    timer_map    timers_;
 };
 
 } // namespace m

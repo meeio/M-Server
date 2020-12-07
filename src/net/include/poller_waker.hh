@@ -6,17 +6,17 @@
 /*                      CLASS POLLER_WAKER                     */
 /* ----------------------------------------------------------- */
 
-#include "pollee.hh"
 #include "copytype.hh"
+#include "poll_handler.hh"
 
-
-namespace m
+namespace m 
 {
     
 class poller;
+class poll_handle;
 
 class poller_waker
-    : public pollable
+    : public poll_handler
 {
 
 public:
@@ -29,7 +29,7 @@ protected:
     virtual void handle_read(const time_point&) override;
 
 private:
-    pollee pollee_;
+    poll_handle& phandle_;
 };
 
 } // namespace m

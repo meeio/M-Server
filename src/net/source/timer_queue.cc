@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sys/timerfd.h>
 
+#include "poll_handle.hh"
 #include "event_loop.hh"
 #include "logger.hh"
 #include "sys_fd.hh"
@@ -22,9 +23,10 @@ namespace m
 
 timer_queue::timer_queue(event_loop& loop)
     : loop_(loop)
-    , pollee_(loop_, this, fd::create_timer_fd())
+    , poll_hd_(loop_.register_polling(fd::create_timer_fd()))
 {
-    pollee_.enable_reading();
+    poll_hd_.bind_handler(*this);
+    poll_hd_.enable_reading();
 }
 
 timer_queue::~timer_queue()
@@ -53,7 +55,7 @@ void timer_queue::handle_read(const time_point&)
 {
     loop_.assert_in_loop_thread();
 
-    fd::none_reaturn_read(pollee_.fd());
+    fd::none_reaturn_read(poll_hd_.fd());
 
     time_point now      = clock::now();
     timer_list expiered = pop_expired(now);
@@ -125,7 +127,7 @@ void timer_queue::reset_expieration_from_now(time_point expir)
     auto [sec, nano_sec] = m::clock::parse_time_duration(dura_to_expira);
 
     int round_nano_sec = (sec == 0 && nano_sec < 1e6) ? 1e6 : nano_sec;
-    m::fd::reset_timerfd_time(pollee_.fd(), sec, round_nano_sec);
+    m::fd::reset_timerfd_time(poll_hd_.fd(), sec, round_nano_sec);
 }
 
 timer_queue::timer_list timer_queue::pop_expired(time_point now)

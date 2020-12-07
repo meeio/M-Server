@@ -4,27 +4,32 @@
 #include <functional>
 
 #include "clock.hh"
-// #include "event_loop.hh"
+#include "copytype.hh"
 
 namespace m
 {
 
 class event_loop;
+class poller;
+class poll_handler;
 
 /**
  * channel object belongs to one event_loop.
  * channel object handle one fd by distributing it's callback function.
  */
-class channel
+class poll_handle
+    : noncopyable
 {
 public:
-    // typedef std::function<void()>                    event_callback;
     typedef std::function<void(const time_point&)> event_callback;
 
-    /* ----------------------- CONSTRUCTORS ---------------------- */
+    static const int EVENT_NONE;
+    static const int EVENT_READ;
+    static const int EVENT_WRITE;
 
-    channel(event_loop& loop, int fd);
-    ~channel();
+    /* ----------------------- CONSTRUCTORS ---------------------- */
+    poll_handle(event_loop& loop, int fd);
+    ~poll_handle();
 
     /* ------------------------- OBSERVER ------------------------ */
 
@@ -47,6 +52,7 @@ public:
 
     /* -------------------- CALLBACK MODIFIERS ------------------- */
 
+    void bind_handler(poll_handler&);
     void set_read_callback(event_callback cb) { read_callback_ = cb; }
     void set_write_callback(event_callback cb) { write_callback_ = cb; }
     void set_err_callback(event_callback cb) { err_callback_ = cb; }
@@ -57,10 +63,6 @@ public:
     int  index() { return index_; }
     void set_index(int idx) { index_ = idx; }
 
-    static const int EVENT_NONE;
-    static const int EVENT_READ;
-    static const int EVENT_WRITE;
-
 private:
     void update();
 
@@ -68,9 +70,9 @@ private:
     const int   fd_;
     int         index_;
 
-    bool handling_event_;
     int  events_;
     int  revents_;
+    bool handling_event_;
 
     event_callback read_callback_;
     event_callback write_callback_;

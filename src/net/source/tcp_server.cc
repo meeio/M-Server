@@ -20,8 +20,8 @@ tcp_server::tcp_server(event_loop& loop, const inet_address& listen_addr)
     , name_(listen_addr.adress())
     , loop_thread_pool_(loop_)
     , acceptor_(loop_, listen_addr)
-    , next_conn_id_(1)
     , started_(false)
+    , next_conn_id_(1)
 {
     ::signal(SIGPIPE, SIG_IGN);
 

@@ -1,7 +1,7 @@
 #include <sys/timerfd.h>
 #include <unistd.h>
 
-#include "channel.hh"
+#include "poll_handle.hh"
 #include "event_loop.hh"
 #include "logger.hh"
 
@@ -16,7 +16,7 @@ void timeout(const m::time_point& when)
     gloop->quit();
 }
 
-int main(int argc, char const* argv[])
+int main(int, char**)
 {
     DEBUG_MODE;
 
@@ -24,7 +24,7 @@ int main(int argc, char const* argv[])
     gloop = &loop;
     timerfd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
 
-    m::channel ch(gloop, timerfd);
+    m::poll_handle ch(*gloop, timerfd);
     ch.set_read_callback(timeout);
     ch.enable_reading();
 

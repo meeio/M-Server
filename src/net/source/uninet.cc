@@ -19,7 +19,7 @@ sockaddr_in construct_sockaddr_in(const std::string ip, uint16_t port)
 
 sockaddr_in construct_sockaddr_in(int sockfd)
 {
-    sockaddr  addr = {0};
+    sockaddr addr = {0, 0};
     socklen_t addr_len = sizeof addr;
 
     ::getsockname(sockfd, &addr, &addr_len);
@@ -32,13 +32,10 @@ sockaddr_in construct_sockaddr_in(int sockfd)
 namespace m::sock_op
 {
 
-
-
-int connect(int sfd, const sockaddr& addr) 
+int connect(int sfd, const sockaddr& addr)
 {
     return ::connect(sfd, &addr, sizeof addr);
 }
-
 
 int bind(int sfd, const sockaddr& addr)
 {
@@ -52,7 +49,7 @@ int bind(int sfd, const sockaddr& addr)
         TRACE << "socket #" << sfd << " bind";
     }
     return ret;
-};
+}
 
 int listen(int sfd)
 {
@@ -66,7 +63,7 @@ int listen(int sfd)
         TRACE << "socket #" << sfd << " listening.";
     }
     return ret;
-};
+}
 
 std::tuple<int, sockaddr> accept(int sfd)
 {
@@ -109,7 +106,7 @@ std::tuple<int, sockaddr> accept(int sfd)
     }
 
     return {connfd, peer_sockaddr};
-};
+}
 
 int shutdown_write(int sfd)
 {
@@ -140,7 +137,7 @@ void set_tcp_no_delay(int sfd, bool on)
 void set_tcp_keep_alive(int sfd, bool on)
 {
     int optval = on ? 1 : 0;
-    ::setsockopt(sfd, IPPROTO_TCP, SO_KEEPALIVE, &optval, sizeof optval);   
+    ::setsockopt(sfd, IPPROTO_TCP, SO_KEEPALIVE, &optval, sizeof optval);
 }
 
 int get_error(int sockfd)

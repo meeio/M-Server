@@ -29,7 +29,7 @@ public:
     /* ------------------------ OBSERVERS ------------------------ */
     bool             is_valid() { return fd() != INVAL_FD; }
     inet_address     host_addr() { return uni_addr::construct_sockaddr_in(socket_fd_); }
-    inline const int fd() const { return socket_fd_; }
+    inline int fd() const { return socket_fd_; }
     int              get_error();
 
     /* ------------------------- MODIFIER ------------------------ */

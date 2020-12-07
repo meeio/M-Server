@@ -2,6 +2,8 @@
 #include "event_loop.hh"
 #include "logger.hh"
 #include "sys_fd.hh"
+#include "poll_handle.hh"
+
 
 namespace m
 {
@@ -9,7 +11,7 @@ namespace m
 connector::connector(event_loop&  owner_loop,
                      inet_address peer_addr)
     : loop_(owner_loop)
-    , ppollee_(nullptr)
+    , poll_hd_(nullptr)
     , state_(state::disconnected)
     , psocket_(nullptr)
     , peer_addr_(peer_addr)
@@ -33,7 +35,6 @@ void connector::connect()
 connector::~connector() 
 {
     psocket_ = nullptr;
-    ppollee_ = nullptr;
 }
 
 
@@ -45,9 +46,10 @@ void connector::reconnect()
 void connector::wait_writable()
 {
     set_state(state::connecting);
-    assert(!ppollee_);
-    ppollee_ = std::make_unique<pollee>(loop_, this, psocket_->fd());
-    ppollee_->enable_writing();
+    assert(!poll_hd_);
+    poll_hd_ = &loop_.register_polling(psocket_->fd());
+    poll_hd_->bind_handler(*this);
+    poll_hd_->enable_writing();
 }
 
 void connector::stop()
@@ -130,7 +132,6 @@ void connector::connect_in_loop()
 void connector::retry_connect()
 {
     psocket_ = nullptr;
-    ppollee_ = nullptr;
 
     if ( state_ != state::stop )
     {

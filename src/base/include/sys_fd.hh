@@ -39,7 +39,7 @@ inline int create_tcp_socket_fd()
 inline void none_reaturn_read(int fd)
 {
     uint64_t howmany;
-    ssize_t  n = ::read(fd, &howmany, sizeof howmany);
+    ::read(fd, &howmany, sizeof howmany);
 }
 
 itimerspec reset_timerfd_time(int fd, int sec, long nano_sec);

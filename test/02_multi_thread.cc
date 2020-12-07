@@ -13,7 +13,7 @@ void loop_a_event()
     loop.loop();
 }
 
-int main(int argc, char const *argv[])
+int main(int, char const **)
 {
     DEBUG_MODE;
 

@@ -1,11 +1,12 @@
 #include "poll/spoller.hh"
 
 #include <algorithm>
+#include <poll.h>
 
-#include "channel.hh"
 #include "clock.hh"
 #include "event_loop.hh"
 #include "logger.hh"
+#include "poll_handle.hh"
 
 namespace m
 {
@@ -21,13 +22,35 @@ spoller::~spoller()
 
 poller::channel_vector spoller::poll(int timeout_ms)
 {
+    // for (auto s : pollfds_)
+    // {
+    //     DEBUG << s.fd;
+    // }
     int event_num = ::poll(
         &*pollfds_.begin(), pollfds_.size(), timeout_ms);
-    // time_point_t now = clock::now();
-    return find_active_channel(event_num);
+
+    return find_active_handles(event_num);
 }
 
-poller::channel_vector spoller::find_active_channel(int event_num)
+poll_handle& spoller::register_polling(int fd)
+{
+    handle_ptr   ptr = std::make_unique<poll_handle>(loop(), fd);
+    poll_handle& ret = *ptr;
+
+    pollfd apollfd = {
+        .fd      = IGNORED_FD,
+        .events  = 0,
+        .revents = 0};
+    pollfds_.push_back(apollfd);
+
+    ptr->set_index(handles_.size());
+    handles_[fd] = std::move(ptr);
+
+    assert(pollfds_.size() == handles_.size());
+    return ret;
+}
+
+poller::channel_vector spoller::find_active_handles(int event_num)
 {
     channel_vector ret_channels;
 
@@ -35,11 +58,11 @@ poller::channel_vector spoller::find_active_channel(int event_num)
     {
         if ( auto re = pollfd.revents; re > 0 )
         {
-            const auto ch_it = channels_.find(pollfd.fd);
-            channel*   ch    = ch_it->second;
-            ch->set_revents(re);
+            const auto  handle_it = handles_.find(pollfd.fd);
+            handle_ptr& phandle   = handle_it->second;
+            phandle->set_revents(re);
 
-            ret_channels.push_back(ch);
+            ret_channels.push_back(*phandle);
             if ( --event_num == 0 )
                 break;
         }
@@ -48,57 +71,43 @@ poller::channel_vector spoller::find_active_channel(int event_num)
     return ret_channels;
 }
 
-void spoller::update_channel(channel* ch)
+void spoller::update_handle(poll_handle& handle)
 {
     assert_in_loop_thread();
+    assert(handle.index() >= 0);
 
-    if ( ch->index() < 0 )
+    int idx = handle.index();
+
+    pollfd& apollfd = pollfds_[idx];
+    apollfd.revents = 0;
+    apollfd.events  = handle.events();
+
+    if ( handle.is_none_event() )
     {
-        pollfd apollfd = {
-            .fd      = ch->fd(),
-            .events  = static_cast<short>(ch->events()),
-            .revents = 0};
-
-        pollfds_.push_back(apollfd);
-        ch->set_index(pollfds_.size() - 1);
-        channels_[ch->fd()] = ch;
+        apollfd.fd = IGNORED_FD;
     }
     else
     {
-        int idx = ch->index();
-
-        pollfd& apollfd = pollfds_[idx];
-        apollfd.revents = 0;
-        apollfd.events  = ch->events();
-
-        if ( ch->is_none_event() )
-            apollfd.fd = -1;
+        apollfd.fd = handle.fd();
     }
 }
 
-void spoller::remove_channel(channel* ch)
+void spoller::remove_handle(poll_handle& handle)
 {
 
-    assert(channels_.find(ch->fd()) != channels_.end());
-    assert(channels_[ch->fd()] == ch);
-    assert(ch->is_none_event());
+    assert(handles_[handle.fd()].get() == &handle);
+    assert(handle.is_none_event());
 
     // remove channel from pollfds_
-    if ( int t_idx = ch->index(); t_idx == pollfds_.size() - 1 )
+    if ( int tar_idx = handle.index();
+         tar_idx != pollfds_.size() - 1 )
     {
-        pollfds_.pop_back();
-    }
-    else
-    {
-        int tail_channel_fd = pollfds_.back().fd;
-        std::iter_swap(pollfds_.begin() + t_idx, pollfds_.end() - 1);
-        channels_[tail_channel_fd]->set_index(t_idx);
-        pollfds_.pop_back();
+        int tail_idx = pollfds_.size() - 1;
+        std::swap(pollfds_[tail_idx], pollfds_[tar_idx]);
     }
 
-    // remove channel from fd to channel* map
-    size_t n = channels_.erase(ch->fd());
-    assert(n == 1);
+    pollfds_.pop_back();
+    handles_.erase(handle.fd());
 }
 
 } // namespace m

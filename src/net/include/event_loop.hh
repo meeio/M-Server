@@ -19,7 +19,7 @@
 namespace m
 {
 
-class channel;
+class poll_handle;
 class spoller;
 class timer_queue;
 
@@ -45,8 +45,7 @@ public:
 
     void assert_in_loop_thread()
     {
-        if ( !is_in_loop_thread() )
-            abort();
+        assert(is_in_loop_thread() && "not in thread falst");
     }
 
     bool is_in_loop_thread() const
@@ -71,8 +70,9 @@ public:
 
     /* --------------------- CHANNEL MANNAGER -------------------- */
 
-    void update_channel(channel*);
-    void remove_channel(channel*);
+    poll_handle& register_polling(int);
+    void update_poll_handle(poll_handle&);
+    void remove_poll_handle(poll_handle&);
 
 private:
     /* --------------------- FUNCTION RUNNER --------------------- */
@@ -81,9 +81,6 @@ private:
 
     /* ---------------------------- V ---------------------------- */
 
-    bool      looping_;
-    bool      quit_;
-    bool      calling_pending_functor_;
     const int thread_id_;
 
     int          poll_time_ms_;
@@ -91,6 +88,10 @@ private:
     poller_waker poller_waker_;
 
     timer_queue timers_;
+
+    bool      looping_;
+    bool      quit_;
+    bool      calling_pending_functor_;
 
     std::vector<functor> pending_functors_;
     std::mutex           pending_functors_mutex_;

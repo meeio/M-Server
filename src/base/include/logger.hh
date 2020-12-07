@@ -32,9 +32,9 @@ protected:
     static t_ptr_log logger_;
 
 private:
-    std::stringstream buffer_;
     t_lvl             lvl_;
     std::string       file_name_;
+    std::stringstream buffer_;
 };
 
 #define DEBUG_MODE spdlog::set_level(spdlog::level::debug)

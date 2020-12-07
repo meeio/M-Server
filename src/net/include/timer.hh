@@ -28,7 +28,7 @@ public:
     void restart(time_point);
 
     time_point expiration() { return expiration_; }
-    const int  sequence() { return sequence_; }
+    int        sequence() { return sequence_; }
     bool       reapeat() { return reapeat_; }
 
 private:

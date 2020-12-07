@@ -31,10 +31,10 @@ namespace m
 int thread::created_num_ = 0;
 
 thread::thread(thread_fun func, const string& name)
-    : func_(func)
+    : tid(-1)
     , name_(name)
-    , tid(-1)
     , latch_(1)
+    , func_(func)
     , start_(false)
     , thread_handle(nullptr)
 {
