@@ -19,12 +19,6 @@ poller_waker::~poller_waker()
     
 }
 
-/**
- * * this is a function to wakeup thread when blocking
- * * in 'poll()' method.
- * * this happents when (1). aleardy blocked in poll() 
- * * or (2). will block in next loop. 
- */
 void poller_waker::wakeup_loop()
 {
     assert(phandle_.is_reading());

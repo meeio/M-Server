@@ -23,6 +23,10 @@ public:
     poller_waker(poller&);
     ~poller_waker();
 
+    /// this is a function wakeups thread when blocking
+    /// in 'poll()' method.
+    /// this happents when (1). aleardy blocked in poll() 
+    /// or (2). will block in next loop. 
     void wakeup_loop();
 
 protected:

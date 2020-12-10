@@ -46,7 +46,7 @@ void event_loop::loop()
 
     while (!quit_)
     {
-        poller::channel_vector active_channels = poller_->poll(poll_time_ms_);
+        poller::handle_vector active_channels = poller_->poll(poll_time_ms_);
 
         time_point poll_time = clock::now();
 

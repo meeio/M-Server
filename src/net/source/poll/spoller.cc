@@ -20,7 +20,7 @@ spoller::~spoller()
 {
 }
 
-poller::channel_vector spoller::poll(int timeout_ms)
+poller::handle_vector spoller::poll(int timeout_ms)
 {
     // for (auto s : pollfds_)
     // {
@@ -34,41 +34,43 @@ poller::channel_vector spoller::poll(int timeout_ms)
 
 poll_handle& spoller::register_polling(int fd)
 {
-    handle_ptr   ptr = std::make_unique<poll_handle>(loop(), fd);
-    poll_handle& ret = *ptr;
 
+    auto emplace_res = handles_.emplace(std::piecewise_construct,
+                                        std::forward_as_tuple(fd),
+                                        std::forward_as_tuple(loop(), fd));
     pollfd apollfd = {
         .fd      = IGNORED_FD,
         .events  = 0,
         .revents = 0};
     pollfds_.push_back(apollfd);
 
-    ptr->set_index(handles_.size());
-    handles_[fd] = std::move(ptr);
+    assert(emplace_res.second == true);
+
+    poll_handle& handle = emplace_res.first->second;
+    handle.set_index(handles_.size() - 1);
 
     assert(pollfds_.size() == handles_.size());
-    return ret;
+    return handle;
 }
 
-poller::channel_vector spoller::find_active_handles(int event_num)
+poller::handle_vector spoller::find_active_handles(int event_num)
 {
-    channel_vector ret_channels;
+    handle_vector ret_handles;
+    ret_handles.reserve(event_num);
 
     for ( const auto pollfd : pollfds_ )
     {
         if ( auto re = pollfd.revents; re > 0 )
         {
-            const auto  handle_it = handles_.find(pollfd.fd);
-            handle_ptr& phandle   = handle_it->second;
-            phandle->set_revents(re);
-
-            ret_channels.push_back(*phandle);
+            poll_handle& handle = handles_.find(pollfd.fd)->second;
+            handle.set_revents(re);
+            ret_handles.push_back(handle);
             if ( --event_num == 0 )
                 break;
         }
     }
 
-    return ret_channels;
+    return ret_handles;
 }
 
 void spoller::update_handle(poll_handle& handle)
@@ -95,11 +97,11 @@ void spoller::update_handle(poll_handle& handle)
 void spoller::remove_handle(poll_handle& handle)
 {
 
-    assert(handles_[handle.fd()].get() == &handle);
+    // assert(handles_[handle.fd()].get() == &handle);
     assert(handle.is_none_event());
 
     // remove channel from pollfds_
-    if ( int tar_idx = handle.index();
+    if ( size_t tar_idx = handle.index();
          tar_idx != pollfds_.size() - 1 )
     {
         int tail_idx = pollfds_.size() - 1;

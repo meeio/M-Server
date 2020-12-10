@@ -29,6 +29,7 @@ public:
 
     /* ----------------------- CONSTRUCTORS ---------------------- */
     poll_handle(event_loop& loop, int fd);
+    poll_handle(poll_handle&&) = default;
     ~poll_handle();
 
     /* ------------------------- OBSERVER ------------------------ */

@@ -20,18 +20,18 @@ public:
     spoller(event_loop&);
     ~spoller();
 
-    virtual channel_vector poll(int timeout_ms) override;
-    virtual poll_handle&   register_polling(int) override;
-    virtual void           update_handle(poll_handle&) override;
-    virtual void           remove_handle(poll_handle&) override;
+    virtual handle_vector poll(int timeout_ms) override;
+    virtual poll_handle&  register_polling(int) override;
+    virtual void          update_handle(poll_handle&) override;
+    virtual void          remove_handle(poll_handle&) override;
 
 private:
-    static const int                     IGNORED_FD = -1;
-    typedef std::unique_ptr<poll_handle> handle_ptr;
-    typedef std::vector<pollfd>          pollfd_list;
-    typedef std::map<int, handle_ptr>    handle_list;
+    static const int IGNORED_FD = -1;
+    // typedef std::unique_ptr<poll_handle> handle_ptr;
+    typedef std::vector<pollfd>        pollfd_list;
+    typedef std::map<int, poll_handle> handle_list;
 
-    channel_vector find_active_handles(int);
+    handle_vector find_active_handles(int);
 
     pollfd_list pollfds_;
     handle_list handles_;

@@ -1,41 +1,36 @@
-#ifndef __EPOLLER_H__
-#define __EPOLLER_H__
+#ifndef __SPOLLER_H__
+#define __SPOLLER_H__
+
+#include <map>
+#include <vector>
+
+#include <tuple>
 
 #include "../poller.hh"
 
+struct epoll_event;
+
 namespace m
 {
-
-/* ----------------------------------------------------------- */
-/*                        CLASS EPOLLER                        */
-/* ----------------------------------------------------------- */
-
-class event_loop;
 
 class epoller
     : public poller
 {
 public:
-    /* --------------------- (DE)CONSTRUCTOR --------------------- */
-
-    epoller();
+    epoller(event_loop&);
     ~epoller();
 
-    /* ---------------------- POLL FUNCTION ---------------------- */
-    virtual channel_vector poll(int timeout_ms);
-    virtual void           update_handle(poll_handle*);
-    virtual void           remove_handle(poll_handle*);
+    virtual handle_vector poll(int timeout_ms) override;
+    virtual poll_handle&  register_polling(int) override;
+    virtual void          update_handle(poll_handle&) override;
+    virtual void          remove_handle(poll_handle&) override;
 
 private:
-
-    static const int INIT_EVENT_LIST_SIZE = 32;
-
-    typedef std::vector<struct epoll_event> event_list;
-
-    event_list events_;
-
-    int poller_fd_;
+    const int INIT_RETRIVE_NUM = 1;
+    const int epoll_fd_;
+    std::vector<epoll_event> retrive_events_;
 };
 
 } // namespace m
-#endif // __EPOLLER_H__
+
+#endif // __POLLER_H__

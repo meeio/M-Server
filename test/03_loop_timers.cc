@@ -45,8 +45,6 @@ int main()
     auto t2 = loop.run_every(std::bind(print, "every2"), 7700);
     DEBUG << &t2;
 
-    t1.cancel_timer();
-
     // loop.run_every(3, std::bind(print, "every3"));
 
     loop.loop();
