@@ -22,13 +22,11 @@ spoller::~spoller()
 
 poller::handle_vector spoller::poll(int timeout_ms)
 {
-    // for (auto s : pollfds_)
-    // {
-    //     DEBUG << s.fd;
-    // }
+    loop().assert_in_loop_thread();
+
     int event_num = ::poll(
         &*pollfds_.begin(), pollfds_.size(), timeout_ms);
-
+    
     return find_active_handles(event_num);
 }
 
@@ -38,18 +36,19 @@ poll_handle& spoller::register_polling(int fd)
     auto emplace_res = handles_.emplace(std::piecewise_construct,
                                         std::forward_as_tuple(fd),
                                         std::forward_as_tuple(loop(), fd));
+
+    assert(emplace_res.second == true);
+    assert(handles_.size() == pollfds_.size() + 1);
+
+    poll_handle& handle = emplace_res.first->second;
+    handle.set_index(pollfds_.size());
+
     pollfd apollfd = {
         .fd      = IGNORED_FD,
         .events  = 0,
         .revents = 0};
     pollfds_.push_back(apollfd);
 
-    assert(emplace_res.second == true);
-
-    poll_handle& handle = emplace_res.first->second;
-    handle.set_index(handles_.size() - 1);
-
-    assert(pollfds_.size() == handles_.size());
     return handle;
 }
 
@@ -97,7 +96,7 @@ void spoller::update_handle(poll_handle& handle)
 void spoller::remove_handle(poll_handle& handle)
 {
 
-    // assert(handles_[handle.fd()].get() == &handle);
+    assert(&handles_[handle.fd()] == &handle);
     assert(handle.is_none_event());
 
     // remove channel from pollfds_

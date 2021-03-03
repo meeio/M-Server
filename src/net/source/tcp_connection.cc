@@ -52,7 +52,7 @@ void tcp_connection::connection_destroyed()
 
     // remove the channel in poller
     poll_hd_.disable_all();
-    
+
     connection_cb_(shared_from_this());
 }
 
@@ -79,7 +79,7 @@ void tcp_connection::shotdown()
     {
         set_state(state_e::disconnecting);
         loop_.run_in_loop(
-            [&, lifetime = shared_from_this()] { shotdown_in_loop(); }); 
+            [&, lifetime = shared_from_this()] { shotdown_in_loop(); });
     }
 }
 
@@ -87,7 +87,7 @@ void tcp_connection::handle_read(const time_point& recive_time)
 {
     size_t readed_size = inp_buffer_.read_socket(socket_);
     auto   now         = clock::now();
-    TRACE <<  to_string() << " reads " << readed_size << " bytes";
+    TRACE << to_string() << " reads " << readed_size << " bytes";
 
     if ( readed_size > 0 )
     {
@@ -154,7 +154,8 @@ void tcp_connection::handle_error(const time_point&)
         << "] - SO_ERROR = " << err << " " << strerror(err);
 }
 
-void tcp_connection::send_in_loop(const std::string& msg, const size_t num_total)
+void tcp_connection::send_in_loop(const std::string& msg,
+                                  const size_t       num_total)
 {
     loop_.assert_in_loop_thread();
 
