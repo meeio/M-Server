@@ -81,6 +81,13 @@ public:
         write_idx_ = PRETEND_SIZE;
     }
 
+    std::string retrieve_as_string()
+    {
+        std::string str(peek(), readable_bytes());
+        retrieve_all();
+        return str;
+    }
+
 private:
     /* ------------------------ ITERATORS ------------------------ */
 

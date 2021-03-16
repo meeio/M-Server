@@ -57,7 +57,8 @@ inline std::string get_ip(const sockaddr_in addr_in)
 }
 
 sockaddr_in construct_sockaddr_in(const std::string ip, uint16_t port);
-sockaddr_in construct_sockaddr_in(int sockfd);
+sockaddr_in host_sockaddr_in(int sockfd);
+sockaddr_in peer_sockaddr_in(int sockfd);
 
 } // namespace m::uni_addr
 
@@ -72,6 +73,7 @@ int                       close(int sfd);
 int                       shutdown_write(int sfd);
 void                      set_tcp_no_delay(int sfd, bool on);
 int                       get_error(int sockfd);
+int                       set_reuseaddr(int sfd, bool on);
 
 } // namespace m::sock_op
 

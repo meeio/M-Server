@@ -25,7 +25,7 @@ int main(int, const char**)
     m::event_loop   loop;
 
     m::acceptor acceptor(loop, listen_addr);
-    acceptor.set_new_conn_callback(new_connection);
+    acceptor.set_new_sock_callback(new_connection);
     acceptor.listen();
 
     loop.loop();

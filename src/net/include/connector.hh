@@ -28,7 +28,7 @@ public:
     void reconnect();
     void stop();
 
-    void set_onnection_cb(new_connection_cb cb_)
+    void set_new_socket_cb(new_connection_cb cb_)
     {
         new_connection_cb_ = cb_;
     }
@@ -37,6 +37,7 @@ public:
     /* ---------------------- EVENT HANDLERS --------------------- */
 
     virtual void handle_write(const time_point&) override;
+    virtual void handle_error(const time_point&) override;
 
 private:
     /* ----------------------- INNER STATE ----------------------- */

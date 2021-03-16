@@ -19,9 +19,9 @@ int main(int, char**)
 
     m::event_loop loop;
     g_loop = &loop;
-    m::inet_address addr("127.0.0.1", 11224);
+    m::inet_address addr("127.0.0.1", 11222);
     m::connector    aconnector(loop, addr);
-    aconnector.set_onnection_cb(cb);
+    aconnector.set_new_socket_cb(cb);
     aconnector.connect();
 
     loop.loop();

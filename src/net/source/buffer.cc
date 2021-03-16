@@ -20,7 +20,7 @@ size_t buffer::read_socket(socket& sok)
 
     // ! here readv is a scatter/gather IO
     // if have many buffer to read, only need to call 'read' once.
-    const ssize_t total_readed = sok.readv(vec, 2);
+    const size_t total_readed = sok.readv(vec, 2);
     if (total_readed > 0)
     {
         if (buf_writeable > total_readed)

@@ -13,26 +13,18 @@ class poll_handler
 public:
     virtual void handle_read(const time_point&)
     {
-        INFO << "assert false";
-        assert(false && "not implement!");
     };
 
     virtual void handle_write(const time_point&)
     {
-        INFO << "assert false";
-        assert(false && "not implement!");
     };
 
     virtual void handle_close(const time_point&)
     {
-        INFO << "assert false";
-        assert(false && "not implement!");
     };
 
     virtual void handle_error(const time_point&)
     {
-        INFO << "assert false";
-        assert(false && "not implement!");
     };
 };
 

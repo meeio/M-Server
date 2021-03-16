@@ -92,4 +92,11 @@ ssize_t socket::readv(iovec* vec, int count)
     return ::readv(socket_fd_, vec, count);
 }
 
+
+void socket::set_tcp_no_delay(bool on) 
+{
+    return sock_op::set_tcp_no_delay(socket_fd_, on);
+}
+
+
 } // namespace m

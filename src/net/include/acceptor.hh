@@ -17,12 +17,11 @@ class acceptor
     , public noncopyable
 {
 public:
-    typedef std::function<void(socket, const inet_address&)>
-        new_coon_callback;
+    typedef std::function<void(socket)> new_socket_callback;
 
     acceptor(event_loop&, const inet_address&);
 
-    void set_new_conn_callback(new_coon_callback);
+    void set_new_sock_callback(new_socket_callback);
 
     void listen();
     bool is_listening() { return is_listing; }
@@ -31,7 +30,7 @@ protected:
     virtual void handle_read(const time_point&) override;
 
 private:
-    new_coon_callback new_conn_cb_;
+    new_socket_callback new_conn_cb_;
     socket            accept_socket_;
     bool              is_listing;
 

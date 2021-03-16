@@ -26,18 +26,23 @@ poller::handle_vector spoller::poll(int timeout_ms)
 
     int event_num = ::poll(
         &*pollfds_.begin(), pollfds_.size(), timeout_ms);
-    
+
     return find_active_handles(event_num);
 }
 
 poll_handle& spoller::register_polling(int fd)
 {
 
+    if ( handles_.count(fd) )
+    {
+        return handles_.at(fd);
+    }
+
     auto emplace_res = handles_.emplace(std::piecewise_construct,
                                         std::forward_as_tuple(fd),
                                         std::forward_as_tuple(loop(), fd));
 
-    assert(emplace_res.second == true);
+    // assert(handles_.count(fd) != 0);
     assert(handles_.size() == pollfds_.size() + 1);
 
     poll_handle& handle = emplace_res.first->second;
@@ -95,8 +100,7 @@ void spoller::update_handle(poll_handle& handle)
 
 void spoller::remove_handle(poll_handle& handle)
 {
-
-    assert(&handles_[handle.fd()] == &handle);
+    assert(&(handles_.at(handle.fd())) == &handle);
     assert(handle.is_none_event());
 
     // remove channel from pollfds_

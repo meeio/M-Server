@@ -57,7 +57,7 @@ private:
     /// @details this function take socket_fd and peer address as input, and 
     /// create new tcp_connection object, and then distritute it into I/O thread.
     /// @see tcp_connection @see loop_thread_pool
-    void register_connection(socket, const inet_address&);
+    void register_connection(socket);
 
     /// @brief thread safe to remove connection
     void remove_connection(const tcp_connection_ptr&);

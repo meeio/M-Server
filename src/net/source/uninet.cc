@@ -17,12 +17,22 @@ sockaddr_in construct_sockaddr_in(const std::string ip, uint16_t port)
     return addr_in;
 }
 
-sockaddr_in construct_sockaddr_in(int sockfd)
+sockaddr_in host_sockaddr_in(int sockfd)
 {
-    sockaddr addr = {0, 0};
+    sockaddr  addr     = {0, 0};
     socklen_t addr_len = sizeof addr;
 
     ::getsockname(sockfd, &addr, &addr_len);
+
+    return cast2addr_in(addr);
+}
+
+sockaddr_in peer_sockaddr_in(int sockfd)
+{
+    sockaddr  addr     = {0, 0};
+    socklen_t addr_len = sizeof addr;
+
+    ::getpeername(sockfd, &addr, &addr_len);
 
     return cast2addr_in(addr);
 }
@@ -138,6 +148,20 @@ void set_tcp_keep_alive(int sfd, bool on)
 {
     int optval = on ? 1 : 0;
     ::setsockopt(sfd, IPPROTO_TCP, SO_KEEPALIVE, &optval, sizeof optval);
+}
+
+int set_reuseaddr(int sfd, bool on)
+{
+    int reuse = on ? 1 : 0;
+    ::setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR,
+                 &reuse, static_cast<socklen_t>(sizeof(reuse)));
+}
+
+int set_reuseport(int sfd, bool on)
+{
+    int reuse = on ? 1 : 0;
+    ::setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT,
+                 &reuse, static_cast<socklen_t>(sizeof(reuse)));
 }
 
 int get_error(int sockfd)

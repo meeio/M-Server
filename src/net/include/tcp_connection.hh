@@ -29,7 +29,7 @@ typedef std::function<void(const tcp_connection_ptr&)>
     connection_callback;
 
 typedef std::function<
-    void(const tcp_connection_ptr&, buffer&, const time_point&)>
+    void(const tcp_connection_ptr&, buffer&, time_point&)>
     message_callback;
 
 typedef std::function<void(const tcp_connection_ptr&)>
@@ -57,10 +57,9 @@ class tcp_connection
 public:
     /* ----------------------- CONSTRUCTORS ---------------------- */
 
-    tcp_connection(event_loop&         loop,
-                   const std::string&  name,
-                   socket&&            sock,
-                   const inet_address& peer_addr);
+    tcp_connection(event_loop&        loop,
+                   const std::string& name,
+                   socket&&           sock);
 
     ~tcp_connection();
 
@@ -125,11 +124,10 @@ public:
     /// event, the connection will not be shutdown.
     void shotdown();
 
-    /* ------------------- STATE CHANGING CB ------------------- */
-
-    void connection_estabalished(); // call only once
-    void connection_destroyed();    // call only once
-
+    void set_tcp_no_delay(bool on)
+    {
+        socket_.set_tcp_no_delay(on);
+    };
 
     /* ---------------------- EVENT HANDLER ---------------------- */
 
@@ -137,6 +135,11 @@ public:
     virtual void handle_write(const time_point& when) override;
     virtual void handle_close(const time_point& when) override;
     virtual void handle_error(const time_point& when) override;
+
+protected:
+    /* ------------------- STATE CHANGING CB ------------------- */
+    void connection_estabalished(); // call only once
+    void connection_destroyed();    // call only once
 
 private:
     enum class state_e
@@ -173,7 +176,7 @@ private:
     tcp_cb::high_watermark_cb       high_watermark_cb_;
 
     event_loop&  loop_;
-    poll_handle& poll_hd_;
+    poll_handle* poll_hd_;
 };
 
 } // namespace m

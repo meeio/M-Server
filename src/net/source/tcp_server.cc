@@ -9,7 +9,6 @@
 
 #include <signal.h>
 
-
 using namespace std::placeholders;
 
 namespace m
@@ -25,10 +24,10 @@ tcp_server::tcp_server(event_loop& loop, const inet_address& listen_addr)
 {
     ::signal(SIGPIPE, SIG_IGN);
 
-    acceptor_.set_new_conn_callback(
-    [&](auto&&... arg) {
-        return register_connection(std::forward<decltype(arg)>(arg)...);
-    });
+    acceptor_.set_new_sock_callback(
+        [&](auto&&... arg) {
+            return register_connection(std::forward<decltype(arg)>(arg)...);
+        });
 }
 
 tcp_server::~tcp_server()
@@ -49,7 +48,7 @@ void tcp_server::start()
     }
 }
 
-void tcp_server::register_connection(socket sock, const inet_address& peer_addr)
+void tcp_server::register_connection(socket sock)
 {
     std::string conn_name = name_ + fmt::format("#{:0>5}", next_conn_id_++);
 
@@ -57,7 +56,7 @@ void tcp_server::register_connection(socket sock, const inet_address& peer_addr)
 
     // create and save a connection
     tcp_connection_ptr ptcp_coon = std::make_shared<tcp_connection>(
-        tcp_owner, conn_name, std::move(sock), peer_addr);
+        tcp_owner, conn_name, std::move(sock));
 
     connections_map_[conn_name] = ptcp_coon;
 
@@ -67,11 +66,11 @@ void tcp_server::register_connection(socket sock, const inet_address& peer_addr)
     ptcp_coon->set_close_callback(
         [&](auto&&... args) { remove_connection(args...); });
 
-    TRACE << "tcp_connection: " << ptcp_coon->to_string()
-          << " created in " << tcp_owner.to_string();
+    // TRACE << "tcp_connection: " << ptcp_coon->to_string()
+    //       << " created in " << tcp_owner.to_string();
 
-    tcp_owner.run_in_loop(
-        [ptcp_coon] { ptcp_coon->connection_estabalished(); });
+    // tcp_owner.run_in_loop(
+    //     [ptcp_coon] { ptcp_coon->connection_estabalished(); });
 }
 
 void tcp_server::remove_connection(const tcp_connection_ptr& p_conn)
@@ -93,9 +92,9 @@ void tcp_server::remove_connection_in_loop(const tcp_connection_ptr& p_conn)
     // this lambda captures connection_ptr by value
     // by doing this, the lifetime of p_ccnn will be extended
     // at least until connection_destroyed() finished.
-    event_loop& owner = p_conn->loop();
-    owner.queue_in_loop(
-        [p_conn] { p_conn->connection_destroyed(); });
+    // event_loop& owner = p_conn->loop();
+    // owner.queue_in_loop(
+    //     [p_conn] { p_conn->connection_destroyed(); });
 }
 
 } // namespace m

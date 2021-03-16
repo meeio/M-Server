@@ -1,9 +1,8 @@
 #include "connector.hh"
 #include "event_loop.hh"
 #include "logger.hh"
-#include "sys_fd.hh"
 #include "poll_handle.hh"
-
+#include "sys_fd.hh"
 
 namespace m
 {
@@ -26,17 +25,14 @@ connector::connector(event_loop&  owner_loop,
 
 void connector::connect()
 {
-    set_state(state::connecting);
     loop_.run_in_loop(
         [&] { connect_in_loop(); });
 }
 
-
-connector::~connector() 
+connector::~connector()
 {
     psocket_ = nullptr;
 }
-
 
 void connector::reconnect()
 {
@@ -75,11 +71,28 @@ void connector::handle_write(const time_point&)
         {
             if ( state_ != state::stop && new_connection_cb_ )
             {
+                poll_hd_->disable_all();
                 new_connection_cb_(std::move(*psocket_));
             }
-            psocket_ = nullptr;
+            psocket_.release();
         }
     }
+}
+
+void connector::handle_error(const time_point&)
+{
+    poll_hd_->disable_all();
+    loop_.queue_in_loop([&, p = poll_hd_]() {
+        loop_.remove_poll_handle(*p);
+    });
+    poll_hd_ = nullptr;
+
+    int err = psocket_->get_error();
+    psocket_.release();
+
+    ERR << std::strerror(err);
+
+    retry_connect();
 }
 
 /* ----------------------------------------------------------- */
@@ -107,6 +120,7 @@ void connector::connect_in_loop()
     case EADDRNOTAVAIL:
     case ECONNREFUSED:
     case ENETUNREACH:
+        psocket_.release();
         retry_connect();
         break;
 
@@ -117,12 +131,12 @@ void connector::connect_in_loop()
     case EBADF:
     case EFAULT:
     case ENOTSOCK:
-        psocket_ = nullptr;
+        psocket_.release();
         break;
 
     default:
         ERR << "Unexpected error in Connector::startInLoop ";
-        psocket_ = nullptr;
+        psocket_.release();
         break;
     }
 
@@ -140,7 +154,7 @@ void connector::retry_connect()
              << " in " << retry_delay_ms << " millisencods";
         auto rtimer = loop_.run_after(
             [&]() { connect_in_loop(); }, retry_delay_ms);
-        retry_timer_ = &rtimer;
+        retry_timer_   = &rtimer;
         retry_delay_ms = std::min(retry_delay_ms * 2, 3000);
     }
 }

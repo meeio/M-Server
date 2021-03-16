@@ -40,7 +40,7 @@ void acceptor::handle_read(const time_point&)
 
         if (new_conn_cb_)
         {
-            new_conn_cb_(std::move(sock), peer_addr);
+            new_conn_cb_(std::move(sock));
         }
         else
         {
@@ -53,7 +53,7 @@ void acceptor::handle_read(const time_point&)
     }
 }
 
-void acceptor::set_new_conn_callback(new_coon_callback cb)
+void acceptor::set_new_sock_callback(new_socket_callback cb)
 {
     new_conn_cb_ = cb;
 }
