@@ -17,8 +17,7 @@ class inet_address;
 class socket : noncopyable
 {
 public:
-    const int                                INVAL_FD = -1;
-    typedef std::tuple<socket, inet_address> accept_tuple;
+    const int INVAL_FD = -1;
 
     /* ----------------------- CONSTRUCTERS ---------------------- */
     socket();
@@ -28,22 +27,24 @@ public:
 
     /* ------------------------ OBSERVERS ------------------------ */
     bool         is_valid() { return fd() != INVAL_FD; }
-    inet_address host_addr() { return uni_addr::host_sockaddr_in(socket_fd_); }
-    inet_address peer_addr() { return uni_addr::peer_sockaddr_in(socket_fd_); }
+    inet_address host_addr();
+    inet_address peer_addr();
     inline int   fd() const { return socket_fd_; }
     int          get_error();
 
     /* ------------------------- MODIFIER ------------------------ */
-    int          bind(const inet_address&);
-    int          listen();
-    int          connect(const inet_address&);
-    ssize_t      readv(iovec*, int);
-    accept_tuple accept();
-    ssize_t      write(const char*, const ssize_t);
-    void         shutdown_write();
-    void         set_tcp_no_delay(bool);
+    int     bind(const inet_address&);
+    int     listen();
+    int     connect(const inet_address&);
+    ssize_t readv(iovec*, int);
+    socket  accept();
+    ssize_t write(const char*, const ssize_t);
+    void    shutdown_write();
+    void    set_tcp_no_delay(bool);
 
 private:
+    std::unique_ptr<inet_address> host_addrp;
+    std::unique_ptr<inet_address> peer_addrp;
     int socket_fd_;
 };
 

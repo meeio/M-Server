@@ -33,7 +33,7 @@ void acceptor::handle_read(const time_point&)
 {
     loop_.assert_in_loop_thread();
 
-    auto [sock, peer_addr] = accept_socket_.accept();
+    socket sock = accept_socket_.accept();
 
     if (sock.is_valid())
     {
